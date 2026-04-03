@@ -63,10 +63,14 @@ def _resolve_and_validate(
     already_resolved: dict[uuid.UUID, tuple[str, str]],
     valid_ids: set[uuid.UUID],
     invalid_ids: set[uuid.UUID],
+    single_user_mode: bool = False,
 ) -> None:
     """
     For each RankedTrack not yet in valid_ids or invalid_ids, resolve platform IDs
     and validate in batch. Mutates already_resolved, valid_ids, invalid_ids in place.
+
+    In single_user_mode only Spotify IDs are resolved; Apple Music validation is skipped
+    and any track with a valid Spotify ID is accepted.
     """
     to_validate: list[tuple[uuid.UUID, str, str]] = []
 
@@ -82,14 +86,22 @@ def _resolve_and_validate(
             invalid_ids.add(cid)
             continue
         sp_id = resolve_spotify_id(db, canonical, user_a_id)
+        if not sp_id:
+            invalid_ids.add(cid)
+            continue
+        if single_user_mode:
+            # No Apple Music; mark valid on Spotify presence alone
+            already_resolved[cid] = (sp_id, "")
+            valid_ids.add(cid)
+            continue
         ap_id = resolve_apple_catalog_id(db, canonical, user_b_id)
-        if not sp_id or not ap_id:
+        if not ap_id:
             invalid_ids.add(cid)
             continue
         already_resolved[cid] = (sp_id, ap_id)
         to_validate.append((cid, sp_id, ap_id))
 
-    if not to_validate:
+    if single_user_mode or not to_validate:
         return
 
     statuses = validate_tracks(
@@ -189,20 +201,27 @@ def run_ingestion_pipeline(
         # ── Stage 4: Taste Scoring ────────────────────────────────────────────
         compute_taste_scores(db, user)
 
-        # ── Stages 5–9: Both users required ──────────────────────────────────
+        # ── Stages 5–9 ────────────────────────────────────────────────────────
         user_a = _find_user_by_platform(db, "spotify")
         user_b = _find_user_by_platform(db, "apple_music")
+
+        # Single-user mode: run with whichever platform is available.
+        # The missing side is mirrored by the available one so the candidate
+        # pool and LLM ranking still work; Apple Music steps are skipped.
+        single_user_mode = not (user_a and user_b)
+        effective_a = user_a or user_b
+        effective_b = user_b or user_a
 
         publish_results: dict = {}
         final_track_count = 0
 
-        if user_a and user_b:
+        if effective_a and effective_b:
             # ── Stage 5: Candidate Pool ───────────────────────────────────────
-            candidates = build_candidate_pool(db, user_a, user_b)
+            candidates = build_candidate_pool(db, effective_a, effective_b)
 
             if candidates:
-                settings_a = _get_or_create_settings(db, user_a)
-                settings_b = _get_or_create_settings(db, user_b)
+                settings_a = _get_or_create_settings(db, effective_a)
+                settings_b = _get_or_create_settings(db, effective_b)
                 active_settings = settings_a if user.platform == "spotify" else settings_b
 
                 target_counts = _compute_target_counts(active_settings)
@@ -212,8 +231,8 @@ def run_ingestion_pipeline(
                     db=db,
                     candidates=candidates,
                     target_counts=target_counts,
-                    user_a_id=user_a.id,
-                    user_b_id=user_b.id,
+                    user_a_id=effective_a.id,
+                    user_b_id=effective_b.id,
                     sync_run_id=run.id,
                     stage="ranking",
                 )
@@ -223,15 +242,17 @@ def run_ingestion_pipeline(
                     rt.canonical_track_id: rt.explanation for rt in initial_ranked
                 }
 
-                # ── Stage 7: Platform Validation (initial ranked set) ─────────
+                # ── Stage 7: Platform Validation ──────────────────────────────
+                # In single_user_mode only Spotify presence is checked.
                 resolved: dict[uuid.UUID, tuple[str, str]] = {}
                 valid_ids: set[uuid.UUID] = set()
                 invalid_ids: set[uuid.UUID] = set()
 
                 _resolve_and_validate(
                     db, initial_ranked,
-                    user_a.id, user_b.id,
+                    effective_a.id, effective_b.id,
                     resolved, valid_ids, invalid_ids,
+                    single_user_mode=single_user_mode,
                 )
 
                 # ── Stage 8: Repair Loop ──────────────────────────────────────
@@ -242,13 +263,12 @@ def run_ingestion_pipeline(
                     valid_ids=valid_ids,
                     invalid_ids=invalid_ids,
                     target_counts=target_counts,
-                    user_a_id=user_a.id,
-                    user_b_id=user_b.id,
+                    user_a_id=effective_a.id,
+                    user_b_id=effective_b.id,
                     max_loops=active_settings.max_repair_loops,
                     sync_run_id=run.id,
                 )
 
-                # Validate any new tracks added by the repair loop
                 all_ranked = repair_result.ranked_tracks
                 for rt in all_ranked:
                     explanation_map.setdefault(rt.canonical_track_id, rt.explanation)
@@ -261,8 +281,9 @@ def run_ingestion_pipeline(
                 if new_tracks:
                     _resolve_and_validate(
                         db, new_tracks,
-                        user_a.id, user_b.id,
+                        effective_a.id, effective_b.id,
                         resolved, valid_ids, invalid_ids,
+                        single_user_mode=single_user_mode,
                     )
 
                 # ── Stage 9: Build final playlist, deduplicate, trim ──────────
@@ -280,36 +301,41 @@ def run_ingestion_pipeline(
                 final_entries = final_entries[:total_target]
                 final_track_count = len(final_entries)
 
-                spotify_ids = [sp_id for _, sp_id, _ in final_entries]
-                apple_ids = [ap_id for _, _, ap_id in final_entries]
+                spotify_ids = [sp_id for _, sp_id, _ in final_entries if sp_id]
+                apple_ids = [ap_id for _, _, ap_id in final_entries if ap_id]
 
-                # Publish to Spotify
-                try:
-                    sp_playlist_id = publish_to_spotify(
-                        db, user_a.id, spotify_ids, settings_a
-                    )
-                    _save_playlist_record(
-                        db, run.id, "spotify", sp_playlist_id,
-                        settings_a.target_playlist_name,
-                        final_entries, explanation_map, valid_ids,
-                    )
-                    publish_results["spotify"] = "published"
-                except Exception as e:
-                    publish_results["spotify_error"] = str(e)
+                # Publish to Spotify (always when user_a exists)
+                if user_a and spotify_ids:
+                    try:
+                        sp_playlist_id = publish_to_spotify(
+                            db, user_a.id, spotify_ids, settings_a
+                        )
+                        _save_playlist_record(
+                            db, run.id, "spotify", sp_playlist_id,
+                            settings_a.target_playlist_name,
+                            final_entries, explanation_map, valid_ids,
+                        )
+                        publish_results["spotify"] = "published"
+                    except Exception as e:
+                        publish_results["spotify_error"] = str(e)
 
-                # Publish to Apple Music
-                try:
-                    ap_playlist_id = publish_to_apple_music(
-                        db, user_b.id, apple_ids, settings_b
-                    )
-                    _save_playlist_record(
-                        db, run.id, "apple_music", ap_playlist_id,
-                        settings_b.target_playlist_name,
-                        final_entries, explanation_map, valid_ids,
-                    )
-                    publish_results["apple_music"] = "published"
-                except Exception as e:
-                    publish_results["apple_music_error"] = str(e)
+                # Publish to Apple Music (only in dual-user mode)
+                if not single_user_mode and user_b and apple_ids:
+                    try:
+                        ap_playlist_id = publish_to_apple_music(
+                            db, user_b.id, apple_ids, settings_b
+                        )
+                        _save_playlist_record(
+                            db, run.id, "apple_music", ap_playlist_id,
+                            settings_b.target_playlist_name,
+                            final_entries, explanation_map, valid_ids,
+                        )
+                        publish_results["apple_music"] = "published"
+                    except Exception as e:
+                        publish_results["apple_music_error"] = str(e)
+
+                if single_user_mode:
+                    publish_results["mode"] = "single_user"
 
         # Partial success if any platform had errors
         run.status = "partial" if platform_errors else "completed"
