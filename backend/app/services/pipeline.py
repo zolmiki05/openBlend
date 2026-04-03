@@ -45,12 +45,13 @@ def _find_user_by_platform(db: Session, platform: str) -> User | None:
 
 
 def _compute_target_counts(settings: UserSettings) -> dict[str, int]:
+    # ratios are stored as integers out of 100 (e.g. 30 = 30%)
     size = settings.playlist_size
     return {
-        "common": round(size * settings.ratio_common),
-        "bridge_a_to_b": round(size * settings.ratio_bridge_a_to_b),
-        "bridge_b_to_a": round(size * settings.ratio_bridge_b_to_a),
-        "experimental": round(size * settings.ratio_experimental),
+        "common": round(size * settings.ratio_common / 100),
+        "bridge_a_to_b": round(size * settings.ratio_bridge_a_to_b / 100),
+        "bridge_b_to_a": round(size * settings.ratio_bridge_b_to_a / 100),
+        "experimental": round(size * settings.ratio_experimental / 100),
     }
 
 

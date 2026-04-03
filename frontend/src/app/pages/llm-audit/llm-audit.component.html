@@ -1,0 +1,135 @@
+<div class="audit">
+
+  <header class="audit__header">
+    <div>
+      <h1 class="audit__title">LLM Audit Log</h1>
+      <p class="audit__subtitle">Every call to the language model, logged with full payload</p>
+    </div>
+  </header>
+
+  <!-- Totals bar -->
+  @if (!loading() && logs().length > 0) {
+    <div class="totals" aria-label="Token usage summary">
+      <div class="totals__stat">
+        <span class="totals__val">{{ totals().calls }}</span>
+        <span class="totals__lbl">calls</span>
+      </div>
+      <div class="totals__divider" aria-hidden="true"></div>
+      <div class="totals__stat">
+        <span class="totals__val">{{ totals().prompt | number }}</span>
+        <span class="totals__lbl">prompt tokens</span>
+      </div>
+      <div class="totals__divider" aria-hidden="true"></div>
+      <div class="totals__stat">
+        <span class="totals__val">{{ totals().completion | number }}</span>
+        <span class="totals__lbl">completion tokens</span>
+      </div>
+      <div class="totals__divider" aria-hidden="true"></div>
+      <div class="totals__stat totals__stat--accent">
+        <span class="totals__val">{{ totals().total | number }}</span>
+        <span class="totals__lbl">total tokens</span>
+      </div>
+    </div>
+  }
+
+  <!-- Loading skeletons -->
+  @if (loading()) {
+    <div class="log-table" aria-busy="true">
+      @for (s of skeletons; track $index) {
+        <div class="log-row log-row--skeleton" aria-hidden="true">
+          <div class="sk sk--stage"></div>
+          <div class="sk sk--model"></div>
+          <div class="sk sk--tokens"></div>
+          <div class="sk sk--dur"></div>
+          <div class="sk sk--date"></div>
+        </div>
+      }
+    </div>
+  }
+
+  <!-- Error -->
+  @if (!loading() && error()) {
+    <div class="audit__error" role="alert">{{ error() }}</div>
+  }
+
+  <!-- Empty -->
+  @if (!loading() && !error() && logs().length === 0) {
+    <div class="audit__empty">
+      <span class="audit__empty-icon" aria-hidden="true">▸</span>
+      <p>No LLM calls recorded yet. Run a sync to generate entries.</p>
+    </div>
+  }
+
+  <!-- Log table -->
+  @if (!loading() && !error() && logs().length > 0) {
+    <div class="log-table" role="table" aria-label="LLM call log">
+      <div class="log-table__head" role="row" aria-hidden="true">
+        <span>Stage</span>
+        <span>Model</span>
+        <span>Prompt</span>
+        <span>Completion</span>
+        <span>Total</span>
+        <span>Duration</span>
+        <span>Timestamp</span>
+      </div>
+
+      @for (log of logs(); track log.id) {
+        <div class="log-entry" [class.log-entry--open]="isExpanded(log.id)">
+          <button
+            type="button"
+            class="log-row"
+            [class.log-row--repair]="isRepairStage(log.stage)"
+            [class.log-row--expanded]="isExpanded(log.id)"
+            (click)="toggleRow(log)"
+            [attr.aria-expanded]="isExpanded(log.id)"
+            role="row"
+          >
+            <!-- Stage -->
+            <span class="log-row__cell" role="cell">
+              <span class="stage-tag" [class.stage-tag--repair]="isRepairStage(log.stage)">
+                {{ log.stage }}
+              </span>
+            </span>
+            <!-- Model -->
+            <span class="log-row__cell log-row__cell--model" role="cell">{{ log.model }}</span>
+            <!-- Prompt tokens -->
+            <span class="log-row__cell log-row__cell--num" role="cell">{{ log.prompt_tokens | number }}</span>
+            <!-- Completion tokens -->
+            <span class="log-row__cell log-row__cell--num" role="cell">{{ log.completion_tokens | number }}</span>
+            <!-- Total tokens -->
+            <span class="log-row__cell log-row__cell--num log-row__cell--total" role="cell">{{ log.total_tokens | number }}</span>
+            <!-- Duration -->
+            <span class="log-row__cell log-row__cell--dur" role="cell">{{ log.duration_ms }} ms</span>
+            <!-- Date -->
+            <span class="log-row__cell log-row__cell--date" role="cell">{{ formatDate(log.created_at) }}</span>
+          </button>
+
+          <!-- Expanded detail -->
+          @if (isExpanded(log.id)) {
+            <div class="log-detail" role="region" [attr.aria-label]="'Detail for ' + log.stage">
+              @if (detailLoading()) {
+                <div class="log-detail__loading" aria-busy="true">
+                  <span class="spinner" aria-hidden="true"></span>
+                  <span>Loading payload…</span>
+                </div>
+              }
+              @if (!detailLoading() && expandedDetail()) {
+                <div class="log-detail__panels">
+                  <div class="json-panel">
+                    <div class="json-panel__label">REQUEST</div>
+                    <pre class="json-panel__code"><code>{{ formatJson(expandedDetail()!.request) }}</code></pre>
+                  </div>
+                  <div class="json-panel">
+                    <div class="json-panel__label">RESPONSE</div>
+                    <pre class="json-panel__code"><code>{{ formatJson(expandedDetail()!.response) }}</code></pre>
+                  </div>
+                </div>
+              }
+            </div>
+          }
+        </div>
+      }
+    </div>
+  }
+
+</div>

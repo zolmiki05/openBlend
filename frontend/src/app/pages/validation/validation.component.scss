@@ -1,0 +1,357 @@
+:host {
+  display: block;
+  height: 100%;
+  overflow-y: auto;
+}
+
+.validation {
+  padding: 2.5rem 2rem 3rem;
+
+  &__header {
+    display: flex;
+    align-items: flex-end;
+    justify-content: space-between;
+    gap: 1rem;
+    margin-bottom: 1.5rem;
+  }
+
+  &__title {
+    font-family: var(--font-display);
+    font-size: clamp(1.75rem, 3vw, 2.25rem);
+    font-weight: 700;
+    letter-spacing: -0.03em;
+    color: var(--color-text);
+    margin: 0 0 0.25rem;
+    line-height: 1.1;
+  }
+
+  &__subtitle {
+    font-size: 0.875rem;
+    color: var(--color-text-muted);
+    margin: 0;
+  }
+
+  &__total {
+    font-family: var(--font-display);
+    font-size: 1.5rem;
+    font-weight: 700;
+    color: var(--color-warning);
+    letter-spacing: -0.02em;
+    white-space: nowrap;
+  }
+
+  &__tabs {
+    display: flex;
+    gap: 0;
+    border-bottom: 1px solid var(--color-border);
+    margin-bottom: 0;
+  }
+
+  &__error {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 1rem;
+    padding: 3rem;
+    text-align: center;
+    color: var(--color-text-muted);
+  }
+
+  &__empty {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0.75rem;
+    padding: 4rem 2rem;
+    text-align: center;
+    color: var(--color-text-subtle);
+
+    p { margin: 0; font-size: 0.9rem; }
+  }
+}
+
+// ── Tabs ─────────────────────────────────────────────────────────────────────
+.tab {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.625rem 1rem;
+  background: none;
+  border: none;
+  border-bottom: 2px solid transparent;
+  margin-bottom: -1px;
+  color: var(--color-text-muted);
+  font-family: var(--font-body);
+  font-size: 0.8125rem;
+  cursor: pointer;
+  transition: color 0.15s, border-color 0.15s;
+
+  &--active {
+    color: var(--color-text);
+    border-bottom-color: var(--color-accent);
+  }
+
+  &__count {
+    background: var(--color-surface-2);
+    color: var(--color-text-muted);
+    font-size: 0.7rem;
+    padding: 0.1rem 0.4rem;
+    border-radius: 10px;
+    min-width: 18px;
+    text-align: center;
+  }
+}
+
+// ── Queue table ───────────────────────────────────────────────────────────────
+.queue-table {
+  width: 100%;
+  border: 1px solid var(--color-border);
+  border-radius: 0 0 10px 10px;
+  overflow: hidden;
+
+  &__head {
+    display: grid;
+    grid-template-columns: 2fr 100px 2fr 120px 90px 130px 80px;
+    padding: 0.5rem 1rem;
+    background: var(--color-surface);
+    font-size: 0.6875rem;
+    color: var(--color-text-subtle);
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    border-bottom: 1px solid var(--color-border);
+  }
+}
+
+// ── Queue row ─────────────────────────────────────────────────────────────────
+.queue-row {
+  display: grid;
+  grid-template-columns: 2fr 100px 2fr 120px 90px 130px 80px;
+  align-items: center;
+  padding: 0.75rem 1rem;
+  border-bottom: 1px solid var(--color-border);
+  background: var(--color-bg);
+  animation: row-in 0.25s ease both;
+  transition: background 0.15s;
+
+  &:nth-child(even) {
+    background: rgba(17, 19, 24, 0.6);
+  }
+
+  &:last-child {
+    border-bottom: none;
+  }
+
+  &:hover {
+    background: var(--color-surface);
+  }
+
+  &--skeleton {
+    pointer-events: none;
+    gap: 1rem;
+    padding: 0.875rem 1rem;
+    background: var(--color-bg) !important;
+  }
+
+  &__cell {
+    padding-right: 0.75rem;
+    overflow: hidden;
+
+    &--track {
+      display: flex;
+      flex-direction: column;
+      gap: 0.1rem;
+    }
+
+    &--reason {
+      overflow: hidden;
+    }
+
+    &--conf {
+      display: flex;
+      flex-direction: column;
+      gap: 0.3rem;
+    }
+
+    &--date {
+      font-size: 0.75rem;
+      color: var(--color-text-muted);
+      font-variant-numeric: tabular-nums;
+    }
+
+    &--actions {
+      display: flex;
+      gap: 0.375rem;
+      justify-content: flex-end;
+      padding-right: 0;
+    }
+  }
+
+  &__title {
+    font-size: 0.8125rem;
+    font-weight: 500;
+    color: var(--color-text);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  &__artists {
+    font-size: 0.7rem;
+    color: var(--color-text-muted);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  &__reason {
+    font-size: 0.75rem;
+    color: var(--color-text-muted);
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    display: block;
+  }
+}
+
+// ── Skeleton cells ────────────────────────────────────────────────────────────
+.skeleton-cell {
+  border-radius: 4px;
+  background: var(--color-surface-2);
+  position: relative;
+  overflow: hidden;
+  height: 14px;
+
+  &::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(90deg, transparent 0%, rgba(255,255,255,0.04) 50%, transparent 100%);
+    background-size: 200% 100%;
+    animation: shimmer 1.6s ease-in-out infinite;
+  }
+
+  &--title  { width: 70%; }
+  &--badge  { width: 60px; }
+  &--reason { width: 85%; }
+  &--conf   { width: 80px; }
+}
+
+// ── Platform badge ────────────────────────────────────────────────────────────
+.platform-badge {
+  display: inline-block;
+  padding: 0.2rem 0.5rem;
+  border-radius: 4px;
+  font-size: 0.65rem;
+  font-weight: 600;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  background: var(--color-surface-2);
+  color: var(--color-text-muted);
+
+  &--spotify {
+    background: rgba(29, 185, 84, 0.15);
+    color: var(--color-spotify);
+  }
+
+  &--apple {
+    background: rgba(252, 60, 68, 0.15);
+    color: var(--color-apple);
+  }
+}
+
+// ── Status badge ──────────────────────────────────────────────────────────────
+.status-badge {
+  display: inline-block;
+  padding: 0.2rem 0.5rem;
+  border-radius: 4px;
+  font-size: 0.65rem;
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+
+  &--pending  { background: rgba(255,179,71,0.15); color: var(--color-warning); }
+  &--approved { background: rgba(29,185,84,0.15);  color: var(--color-spotify); }
+  &--rejected { background: rgba(255,77,77,0.15);  color: var(--color-danger); }
+}
+
+// ── Confidence bar ────────────────────────────────────────────────────────────
+.conf-bar {
+  height: 3px;
+  background: var(--color-surface-2);
+  border-radius: 2px;
+  overflow: hidden;
+  width: 80px;
+
+  &__fill {
+    height: 100%;
+    background: var(--color-accent);
+    border-radius: 2px;
+    transition: width 0.4s ease;
+  }
+}
+
+.conf-pct {
+  font-size: 0.65rem;
+  color: var(--color-text-muted);
+  font-variant-numeric: tabular-nums;
+  font-family: monospace;
+}
+
+.conf-na {
+  font-size: 0.75rem;
+  color: var(--color-text-subtle);
+}
+
+// ── Action buttons ────────────────────────────────────────────────────────────
+.action-btn {
+  width: 28px;
+  height: 28px;
+  border-radius: 4px;
+  border: 1px solid var(--color-border-strong);
+  background: transparent;
+  font-size: 0.75rem;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: background 0.15s, border-color 0.15s, color 0.15s;
+  color: var(--color-text-muted);
+
+  &:disabled { opacity: 0.4; cursor: not-allowed; }
+
+  &--approve:hover {
+    background: rgba(29,185,84,0.15);
+    border-color: var(--color-spotify);
+    color: var(--color-spotify);
+  }
+
+  &--reject:hover {
+    background: rgba(255,77,77,0.15);
+    border-color: var(--color-danger);
+    color: var(--color-danger);
+  }
+}
+
+.retry-btn {
+  padding: 0.5rem 1.25rem;
+  background: transparent;
+  border: 1px solid var(--color-border-strong);
+  border-radius: 6px;
+  color: var(--color-text);
+  font-family: var(--font-body);
+  font-size: 0.875rem;
+  cursor: pointer;
+  transition: border-color 0.2s;
+
+  &:hover { border-color: var(--color-accent); color: var(--color-accent); }
+}
+
+@keyframes shimmer {
+  0%   { background-position: -200% 0; }
+  100% { background-position: 200% 0; }
+}
+
+@keyframes row-in {
+  from { opacity: 0; transform: translateX(-4px); }
+  to   { opacity: 1; transform: translateX(0); }
+}

@@ -37,6 +37,21 @@ export const routes: Routes = [
         loadComponent: () =>
           import('./pages/recommendations/recommendations.component').then((m) => m.RecommendationsComponent),
       },
+      {
+        path: 'settings',
+        loadComponent: () =>
+          import('./pages/settings/settings.component').then((m) => m.SettingsComponent),
+      },
+      {
+        path: 'validation',
+        loadComponent: () =>
+          import('./pages/validation/validation.component').then((m) => m.ValidationComponent),
+      },
+      {
+        path: 'llm-audit',
+        loadComponent: () =>
+          import('./pages/llm-audit/llm-audit.component').then((m) => m.LlmAuditComponent),
+      },
     ],
   },
   {

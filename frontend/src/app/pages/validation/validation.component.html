@@ -1,0 +1,152 @@
+<div class="validation">
+  <header class="validation__header">
+    <div>
+      <h1 class="validation__title">Validation Queue</h1>
+      <p class="validation__subtitle">Tracks flagged during matching or platform lookup</p>
+    </div>
+    @if (!loading() && !error()) {
+      <span class="validation__total" aria-live="polite">{{ counts().pending }} pending</span>
+    }
+  </header>
+
+  <!-- Tabs -->
+  <div class="validation__tabs" role="tablist" aria-label="Filter queue">
+    @for (tab of tabs; track tab.key) {
+      <button
+        type="button"
+        class="tab"
+        [class.tab--active]="activeTab() === tab.key"
+        role="tab"
+        [attr.aria-selected]="activeTab() === tab.key"
+        (click)="setTab(tab.key)"
+      >
+        {{ tab.label }}
+        <span class="tab__count">{{ counts()[tab.key] }}</span>
+      </button>
+    }
+  </div>
+
+  <!-- Loading -->
+  @if (loading()) {
+    <div class="queue-table" aria-busy="true">
+      @for (i of [1,2,3,4,5]; track i) {
+        <div class="queue-row queue-row--skeleton" aria-hidden="true">
+          <div class="skeleton-cell skeleton-cell--title"></div>
+          <div class="skeleton-cell skeleton-cell--badge"></div>
+          <div class="skeleton-cell skeleton-cell--reason"></div>
+          <div class="skeleton-cell skeleton-cell--conf"></div>
+        </div>
+      }
+    </div>
+  }
+
+  <!-- Error -->
+  @if (!loading() && error()) {
+    <div class="validation__error" role="alert">
+      <p>{{ error() }}</p>
+      <button type="button" class="retry-btn" (click)="load()">Retry</button>
+    </div>
+  }
+
+  <!-- Empty -->
+  @if (!loading() && !error() && filteredItems().length === 0) {
+    <div class="validation__empty">
+      <svg width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.25" aria-hidden="true">
+        <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/>
+      </svg>
+      <p>No items in this category.</p>
+    </div>
+  }
+
+  <!-- Table -->
+  @if (!loading() && !error() && filteredItems().length > 0) {
+    <div class="queue-table" role="table" aria-label="Validation queue">
+      <div class="queue-table__head" role="row" aria-hidden="true">
+        <span>Track</span>
+        <span>Platform</span>
+        <span>Reason</span>
+        <span>Confidence</span>
+        <span>Status</span>
+        <span>Added</span>
+        <span></span>
+      </div>
+
+      @for (item of filteredItems(); track item.id) {
+        <div
+          class="queue-row"
+          [class.queue-row--pending]="item.status === 'pending'"
+          [class.queue-row--approved]="item.status === 'approved'"
+          [class.queue-row--rejected]="item.status === 'rejected'"
+          role="row"
+        >
+          <!-- Track -->
+          <div class="queue-row__cell queue-row__cell--track" role="cell">
+            <span class="queue-row__title">{{ item.title ?? 'Unknown track' }}</span>
+            <span class="queue-row__artists">{{ item.artists.join(', ') || '—' }}</span>
+          </div>
+
+          <!-- Platform -->
+          <div class="queue-row__cell" role="cell">
+            <span
+              class="platform-badge"
+              [class.platform-badge--spotify]="item.platform === 'spotify'"
+              [class.platform-badge--apple]="item.platform === 'apple_music'"
+            >{{ platformLabel(item.platform) }}</span>
+          </div>
+
+          <!-- Reason -->
+          <div class="queue-row__cell queue-row__cell--reason" role="cell">
+            <span class="queue-row__reason">{{ item.reason }}</span>
+          </div>
+
+          <!-- Confidence -->
+          <div class="queue-row__cell queue-row__cell--conf" role="cell">
+            @if (item.confidence != null) {
+              <div class="conf-bar">
+                <div class="conf-bar__fill" [style.width]="confidencePct(item.confidence)"></div>
+              </div>
+              <span class="conf-pct">{{ confidencePct(item.confidence) }}</span>
+            } @else {
+              <span class="conf-na">—</span>
+            }
+          </div>
+
+          <!-- Status -->
+          <div class="queue-row__cell" role="cell">
+            <span
+              class="status-badge"
+              [class.status-badge--pending]="item.status === 'pending'"
+              [class.status-badge--approved]="item.status === 'approved'"
+              [class.status-badge--rejected]="item.status === 'rejected'"
+            >{{ item.status }}</span>
+          </div>
+
+          <!-- Date -->
+          <div class="queue-row__cell queue-row__cell--date" role="cell">
+            {{ formatDate(item.created_at) }}
+          </div>
+
+          <!-- Actions -->
+          <div class="queue-row__cell queue-row__cell--actions" role="cell">
+            @if (item.status === 'pending') {
+              <button
+                type="button"
+                class="action-btn action-btn--approve"
+                [disabled]="isActioning(item.id)"
+                (click)="review(item, 'approved')"
+                aria-label="Approve track"
+              >✓</button>
+              <button
+                type="button"
+                class="action-btn action-btn--reject"
+                [disabled]="isActioning(item.id)"
+                (click)="review(item, 'rejected')"
+                aria-label="Reject track"
+              >✕</button>
+            }
+          </div>
+        </div>
+      }
+    </div>
+  }
+</div>

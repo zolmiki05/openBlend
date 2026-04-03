@@ -94,6 +94,13 @@ def find_or_create_canonical(
         return MatchResult("fuzzy", canonical, confidence)
 
     # 4. No match — create new canonical track
+    # Extract album art URL from Spotify raw_data when available
+    album_art_url: str | None = None
+    if raw.platform == "spotify" and raw.raw_data:
+        images = raw.raw_data.get("album", {}).get("images", [])
+        if images:
+            album_art_url = images[0].get("url")
+
     canonical = CanonicalTrack(
         id=uuid.uuid4(),
         canonical_key=normalized.canonical_key,
@@ -104,6 +111,7 @@ def find_or_create_canonical(
         display_artists=normalized.display_artists,
         album=raw.album,
         duration_ms=raw.duration_ms,
+        album_art_url=album_art_url,
     )
     db.add(canonical)
     db.flush()  # get the ID without committing

@@ -51,6 +51,49 @@ export interface PlaylistData {
   tracks: Track[];
 }
 
+export interface UserSettings {
+  target_playlist_name: string;
+  sync_schedule: string;
+  playlist_size: number;
+  allow_explicit: boolean;
+  ratio_common: number;
+  ratio_bridge_a_to_b: number;
+  ratio_bridge_b_to_a: number;
+  ratio_experimental: number;
+  max_repair_loops: number;
+  updated_at: string;
+}
+
+export interface ReviewItem {
+  id: string;
+  raw_track_id: string;
+  title: string | null;
+  artists: string[];
+  platform: string | null;
+  reason: string;
+  status: string;
+  confidence: number | null;
+  created_at: string;
+  reviewed_at: string | null;
+}
+
+export interface LLMLog {
+  id: string;
+  sync_run_id: string | null;
+  model: string;
+  stage: string;
+  prompt_tokens: number;
+  completion_tokens: number;
+  total_tokens: number;
+  duration_ms: number;
+  created_at: string;
+}
+
+export interface LLMLogDetail extends LLMLog {
+  request: Record<string, unknown>;
+  response: Record<string, unknown>;
+}
+
 @Injectable({ providedIn: 'root' })
 export class SyncService {
   private readonly http = inject(HttpClient);
@@ -78,5 +121,30 @@ export class SyncService {
 
   getPlaylist() {
     return this.http.get<PlaylistData[]>(`${this.api}/playlist/current`);
+  }
+
+  getSettings() {
+    return this.http.get<UserSettings>(`${this.api}/settings`);
+  }
+
+  updateSettings(body: Partial<Omit<UserSettings, 'updated_at'>>) {
+    return this.http.put<UserSettings>(`${this.api}/settings`, body);
+  }
+
+  getValidationQueue(status?: string) {
+    const params = status ? `?status=${status}` : '';
+    return this.http.get<ReviewItem[]>(`${this.api}/validation/queue${params}`);
+  }
+
+  reviewQueueItem(id: string, action: 'approved' | 'rejected') {
+    return this.http.patch(`${this.api}/validation/queue/${id}?action=${action}`, {});
+  }
+
+  getLLMLogs(limit = 50) {
+    return this.http.get<LLMLog[]>(`${this.api}/llm-audit/logs?limit=${limit}`);
+  }
+
+  getLLMLogDetail(id: string) {
+    return this.http.get<LLMLogDetail>(`${this.api}/llm-audit/logs/${id}`);
   }
 }

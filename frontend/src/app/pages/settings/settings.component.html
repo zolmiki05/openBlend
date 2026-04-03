@@ -1,0 +1,194 @@
+<div class="settings">
+  <header class="settings__header">
+    <h1 class="settings__title">Settings</h1>
+    <p class="settings__subtitle">Configure sync schedule, playlist composition, and pipeline parameters</p>
+  </header>
+
+  @if (loading()) {
+    <div class="settings__loading" aria-busy="true" aria-label="Loading settings">
+      @for (i of [1,2,3]; track i) {
+        <div class="skeleton-card">
+          <div class="skeleton-line skeleton-line--heading"></div>
+          <div class="skeleton-line skeleton-line--field"></div>
+          <div class="skeleton-line skeleton-line--field"></div>
+        </div>
+      }
+    </div>
+  }
+
+  @if (!loading()) {
+    <form class="settings__form" [formGroup]="form" (ngSubmit)="save()" novalidate>
+
+      <!-- Playlist Name -->
+      <section class="settings-card" aria-labelledby="section-playlist">
+        <h2 class="settings-card__title" id="section-playlist">Playlist</h2>
+        <div class="field">
+          <label class="field__label" for="playlist-name">Playlist name</label>
+          <input
+            class="field__input"
+            id="playlist-name"
+            type="text"
+            formControlName="target_playlist_name"
+            placeholder="OpenBlend"
+            autocomplete="off"
+          />
+        </div>
+        <div class="field">
+          <label class="field__label" for="playlist-size">Playlist size</label>
+          <div class="field__row">
+            <input
+              class="field__input field__input--sm"
+              id="playlist-size"
+              type="number"
+              formControlName="playlist_size"
+              min="10"
+              max="100"
+            />
+            <span class="field__hint">tracks (10–100)</span>
+          </div>
+        </div>
+        <div class="field">
+          <label class="field__label" id="explicit-label">Allow explicit content</label>
+          <button
+            type="button"
+            class="toggle"
+            [class.toggle--on]="form.value.allow_explicit"
+            [attr.aria-pressed]="form.value.allow_explicit"
+            aria-labelledby="explicit-label"
+            (click)="form.patchValue({ allow_explicit: !form.value.allow_explicit })"
+          >
+            <span class="toggle__knob"></span>
+          </button>
+        </div>
+      </section>
+
+      <!-- Sync Schedule -->
+      <section class="settings-card" aria-labelledby="section-schedule">
+        <h2 class="settings-card__title" id="section-schedule">Sync Schedule</h2>
+        <div class="schedule-group" role="radiogroup" aria-label="Sync schedule">
+          @for (opt of scheduleOptions; track opt.value) {
+            <label
+              class="schedule-option"
+              [class.schedule-option--active]="form.value.sync_schedule === opt.value"
+            >
+              <input
+                type="radio"
+                name="sync_schedule"
+                [value]="opt.value"
+                formControlName="sync_schedule"
+                class="schedule-option__input"
+              />
+              {{ opt.label }}
+            </label>
+          }
+        </div>
+      </section>
+
+      <!-- Bucket Ratios -->
+      <section class="settings-card" aria-labelledby="section-ratios">
+        <h2 class="settings-card__title" id="section-ratios">
+          Bucket Ratios
+          <span
+            class="ratio-total"
+            [class.ratio-total--valid]="ratioValid()"
+            [class.ratio-total--invalid]="!ratioValid()"
+            aria-live="polite"
+          >{{ ratioSum() }}<span class="ratio-total__denom">/100</span></span>
+        </h2>
+        <p class="settings-card__desc">All four values must sum to exactly 100.</p>
+
+        <div class="ratio-grid">
+          <div class="ratio-field">
+            <label class="ratio-field__label" for="r-common">
+              <span class="ratio-field__dot ratio-field__dot--common"></span>
+              Common
+            </label>
+            <input class="ratio-field__input" id="r-common" type="number"
+                   formControlName="ratio_common" min="0" max="100" />
+          </div>
+          <div class="ratio-field">
+            <label class="ratio-field__label" for="r-bab">
+              <span class="ratio-field__dot ratio-field__dot--bab"></span>
+              Bridge A→B
+            </label>
+            <input class="ratio-field__input" id="r-bab" type="number"
+                   formControlName="ratio_bridge_a_to_b" min="0" max="100" />
+          </div>
+          <div class="ratio-field">
+            <label class="ratio-field__label" for="r-bba">
+              <span class="ratio-field__dot ratio-field__dot--bba"></span>
+              Bridge B→A
+            </label>
+            <input class="ratio-field__input" id="r-bba" type="number"
+                   formControlName="ratio_bridge_b_to_a" min="0" max="100" />
+          </div>
+          <div class="ratio-field">
+            <label class="ratio-field__label" for="r-exp">
+              <span class="ratio-field__dot ratio-field__dot--exp"></span>
+              Experimental
+            </label>
+            <input class="ratio-field__input" id="r-exp" type="number"
+                   formControlName="ratio_experimental" min="0" max="100" />
+          </div>
+        </div>
+
+        <!-- Visual ratio bar -->
+        <div class="ratio-bar" role="presentation" aria-hidden="true">
+          <div class="ratio-bar__seg ratio-bar__seg--common" [style.flex]="form.value.ratio_common"></div>
+          <div class="ratio-bar__seg ratio-bar__seg--bab" [style.flex]="form.value.ratio_bridge_a_to_b"></div>
+          <div class="ratio-bar__seg ratio-bar__seg--bba" [style.flex]="form.value.ratio_bridge_b_to_a"></div>
+          <div class="ratio-bar__seg ratio-bar__seg--exp" [style.flex]="form.value.ratio_experimental"></div>
+        </div>
+      </section>
+
+      <!-- Pipeline -->
+      <section class="settings-card" aria-labelledby="section-pipeline">
+        <h2 class="settings-card__title" id="section-pipeline">Pipeline</h2>
+        <div class="field">
+          <label class="field__label" for="max-loops">Max repair loops</label>
+          <div class="field__row">
+            <input
+              class="field__input field__input--sm"
+              id="max-loops"
+              type="number"
+              formControlName="max_repair_loops"
+              min="0"
+              max="10"
+            />
+            <span class="field__hint">passes (0–10)</span>
+          </div>
+          <p class="field__desc">Additional LLM passes triggered when valid track count falls below target.</p>
+        </div>
+      </section>
+
+      <!-- Save bar -->
+      <div class="save-bar">
+        @if (saveStatus() === 'success') {
+          <span class="save-bar__feedback save-bar__feedback--ok" role="status">Settings saved.</span>
+        }
+        @if (saveStatus() === 'error') {
+          <span class="save-bar__feedback save-bar__feedback--err" role="alert">{{ errorMessage() }}</span>
+        }
+        @if (!ratioValid()) {
+          <span class="save-bar__feedback save-bar__feedback--warn" role="status">
+            Ratios must sum to 100 (currently {{ ratioSum() }}).
+          </span>
+        }
+        <button
+          type="submit"
+          class="save-btn"
+          [disabled]="!canSave()"
+          [class.save-btn--saving]="saving()"
+        >
+          @if (saving()) {
+            <span class="save-btn__spinner" aria-hidden="true"></span>
+            Saving…
+          } @else {
+            Save settings
+          }
+        </button>
+      </div>
+
+    </form>
+  }
+</div>
