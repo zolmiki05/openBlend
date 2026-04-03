@@ -27,6 +27,30 @@ export interface PlaylistStats {
   buckets: Record<string, number>;
 }
 
+export interface Track {
+  canonical_track_id: string;
+  display_title: string;
+  display_artists: string[];
+  album_art_url: string | null;
+  bucket: string;
+  position: number;
+  score_a: number;
+  score_b: number;
+  platform_track_id: string;
+  llm_explanation: string | null;
+  validation_status: string | null;
+}
+
+export interface PlaylistData {
+  id: string;
+  platform: string;
+  platform_playlist_id: string;
+  name: string;
+  track_count: number;
+  publish_status: string;
+  tracks: Track[];
+}
+
 @Injectable({ providedIn: 'root' })
 export class SyncService {
   private readonly http = inject(HttpClient);
@@ -50,5 +74,9 @@ export class SyncService {
 
   getPlaylistStats() {
     return this.http.get<PlaylistStats>(`${this.api}/playlist/stats`);
+  }
+
+  getPlaylist() {
+    return this.http.get<PlaylistData[]>(`${this.api}/playlist/current`);
   }
 }

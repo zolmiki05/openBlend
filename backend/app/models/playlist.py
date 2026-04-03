@@ -50,6 +50,8 @@ class PlaylistTrack(Base):
     position: Mapped[int] = mapped_column(Integer, nullable=False)
     score_a: Mapped[float] = mapped_column(Float, nullable=False, default=0.0)
     score_b: Mapped[float] = mapped_column(Float, nullable=False, default=0.0)
+    llm_explanation: Mapped[str | None] = mapped_column(Text, nullable=True)
+    validation_status: Mapped[str | None] = mapped_column(String(32), nullable=True)  # valid_both | valid_spotify_only | valid_apple_only | not_found
     added_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())
 
     playlist: Mapped["Playlist"] = relationship("Playlist", back_populates="tracks")

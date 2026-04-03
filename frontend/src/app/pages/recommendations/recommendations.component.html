@@ -1,0 +1,156 @@
+<div class="recs">
+
+  <!-- Header -->
+  <header class="recs__header">
+    <div class="recs__header-left">
+      <h1 class="recs__title">Recommendations</h1>
+      <p class="recs__subtitle">AI-curated blend of your combined taste</p>
+    </div>
+    @if (!loading() && !error()) {
+      <span class="recs__count" aria-live="polite">
+        {{ filteredTracks().length }}<span class="recs__count-label">&nbsp;tracks</span>
+      </span>
+    }
+  </header>
+
+  <!-- Filter bar -->
+  <div class="recs__filters" role="group" aria-label="Filter by bucket">
+    @for (f of filters; track f.key) {
+      <button
+        type="button"
+        class="filter-pill"
+        [class.filter-pill--active]="activeFilter() === f.key"
+        (click)="setFilter(f.key)"
+        [attr.aria-pressed]="activeFilter() === f.key"
+      >
+        {{ f.label }}
+      </button>
+    }
+  </div>
+
+  <!-- Loading state -->
+  @if (loading()) {
+    <div class="recs__grid" aria-busy="true" aria-label="Loading recommendations">
+      @for (s of skeletons; track $index) {
+        <div class="track-card track-card--skeleton" aria-hidden="true">
+          <div class="track-card__art-wrap track-card__art-wrap--skeleton"></div>
+          <div class="track-card__body track-card__body--skeleton">
+            <div class="skeleton-line skeleton-line--title"></div>
+            <div class="skeleton-line skeleton-line--artist"></div>
+            <div class="skeleton-line skeleton-line--bar"></div>
+          </div>
+        </div>
+      }
+    </div>
+  }
+
+  <!-- Error state -->
+  @if (!loading() && error()) {
+    <div class="recs__error" role="alert">
+      <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true" class="recs__error-icon">
+        <circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/>
+      </svg>
+      <p class="recs__error-message">{{ error() }}</p>
+      <button type="button" class="recs__retry-btn" (click)="load()">Try again</button>
+    </div>
+  }
+
+  <!-- Empty state -->
+  @if (!loading() && !error() && tracks().length === 0) {
+    <div class="recs__empty">
+      <div class="recs__empty-icon" aria-hidden="true">
+        <svg width="64" height="64" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1" class="empty-vinyl">
+          <circle cx="12" cy="12" r="10"/>
+          <circle cx="12" cy="12" r="3"/>
+          <line x1="12" y1="2" x2="12" y2="9"/>
+          <line x1="12" y1="15" x2="12" y2="22"/>
+          <line x1="2" y1="12" x2="9" y2="12"/>
+          <line x1="15" y1="12" x2="22" y2="12"/>
+        </svg>
+      </div>
+      <h2 class="recs__empty-title">No playlist yet</h2>
+      <p class="recs__empty-body">Run a sync from the Dashboard to generate your first AI-curated blend.</p>
+    </div>
+  }
+
+  <!-- Track grid -->
+  @if (!loading() && !error() && tracks().length > 0) {
+    <div class="recs__grid" role="list">
+      @for (track of filteredTracks(); track track.canonical_track_id) {
+        <article class="track-card" role="listitem">
+
+          <!-- Art + overlays -->
+          <div class="track-card__art-wrap">
+            @if (track.album_art_url) {
+              <img
+                class="track-card__art"
+                [src]="track.album_art_url"
+                [alt]="track.display_title + ' album art'"
+                loading="lazy"
+                width="400"
+                height="400"
+              />
+            } @else {
+              <div class="track-card__art-placeholder" aria-hidden="true">
+                <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.25">
+                  <path d="M9 18V5l12-2v13"/><circle cx="6" cy="18" r="3"/><circle cx="18" cy="16" r="3"/>
+                </svg>
+              </div>
+            }
+
+            <!-- Bucket badge -->
+            <span
+              class="track-card__badge"
+              [class.track-card__badge--common]="track.bucket === 'common'"
+              [class.track-card__badge--bridge-a]="track.bucket === 'bridge_a_to_b'"
+              [class.track-card__badge--bridge-b]="track.bucket === 'bridge_b_to_a'"
+              [class.track-card__badge--experimental]="track.bucket === 'experimental'"
+              aria-label="Bucket: {{ bucketLabel(track.bucket) }}"
+            >{{ bucketLabel(track.bucket) }}</span>
+
+            <!-- Validation dot -->
+            @if (track.validation_status) {
+              <span
+                class="track-card__dot"
+                [class.track-card__dot--valid]="track.validation_status === 'valid_both'"
+                [class.track-card__dot--partial]="track.validation_status === 'valid_spotify_only' || track.validation_status === 'valid_apple_only'"
+                [class.track-card__dot--invalid]="track.validation_status === 'not_found'"
+                [attr.aria-label]="'Validation: ' + track.validation_status"
+                role="img"
+              ></span>
+            }
+
+            <!-- LLM explanation overlay -->
+            @if (track.llm_explanation) {
+              <div class="track-card__overlay" aria-hidden="true">
+                <p class="track-card__explanation">{{ track.llm_explanation }}</p>
+              </div>
+            }
+          </div>
+
+          <!-- Card body -->
+          <div class="track-card__body">
+            <p class="track-card__title" [title]="track.display_title">{{ track.display_title }}</p>
+            <p class="track-card__artists" [title]="track.display_artists.join(', ')">
+              {{ track.display_artists.join(', ') }}
+            </p>
+
+            <!-- Score bar -->
+            <div class="track-card__scores" aria-label="Taste scores">
+              <div class="score-bar" role="presentation">
+                <div class="score-bar__segment score-bar__segment--a" [style.width]="scoreBarWidths(track).a"></div>
+                <div class="score-bar__segment score-bar__segment--b" [style.width]="scoreBarWidths(track).b"></div>
+              </div>
+              <div class="score-bar__labels" aria-hidden="true">
+                <span>Spotify</span>
+                <span>Apple</span>
+              </div>
+            </div>
+          </div>
+
+        </article>
+      }
+    </div>
+  }
+
+</div>

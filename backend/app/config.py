@@ -23,8 +23,10 @@ class Settings(BaseSettings):
     apple_music_key_id: str = ""
     apple_music_private_key: str = ""
 
-    # OpenAI
-    openai_api_key: str = ""
+    # Z.ai (GLM-5) — OpenAI-compatible endpoint
+    zai_api_key: str = ""
+    zai_base_url: str = "https://api.z.ai/api/paas/v4/"
+    llm_model: str = "glm-5"
 
     # Paths
     users_config_path: str = "/app/users_config.json"
@@ -32,6 +34,9 @@ class Settings(BaseSettings):
 
     # URLs
     frontend_url: str = "http://localhost:4200"
+
+    # Apple Music storefront for catalog lookups
+    apple_music_storefront: str = "us"
 
 
 settings = Settings()

@@ -10,19 +10,12 @@ from app.models.taste_score import TasteScore
 from app.models.rejected_track import RejectedTrack
 from app.models.user_settings import UserSettings
 from app.models.playlist import Playlist, PlaylistTrack
+from app.models.llm_log import LLMLog
 
 __all__ = [
-    "User",
-    "PlatformToken",
-    "PKCEState",
-    "SyncRun",
-    "RawTrack",
-    "CanonicalTrack",
-    "TrackMatch",
-    "ManualReviewQueue",
-    "TasteScore",
-    "RejectedTrack",
-    "UserSettings",
-    "Playlist",
-    "PlaylistTrack",
+    "User", "PlatformToken", "PKCEState",
+    "SyncRun", "RawTrack", "CanonicalTrack", "TrackMatch", "ManualReviewQueue",
+    "TasteScore", "RejectedTrack", "UserSettings",
+    "Playlist", "PlaylistTrack",
+    "LLMLog",
 ]

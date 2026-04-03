@@ -32,6 +32,11 @@ export const routes: Routes = [
         loadComponent: () =>
           import('./pages/dashboard/dashboard.component').then((m) => m.DashboardComponent),
       },
+      {
+        path: 'recommendations',
+        loadComponent: () =>
+          import('./pages/recommendations/recommendations.component').then((m) => m.RecommendationsComponent),
+      },
     ],
   },
   {

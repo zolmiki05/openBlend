@@ -17,11 +17,14 @@ class TrackOut(BaseModel):
     canonical_track_id: uuid.UUID
     display_title: str
     display_artists: list[str]
+    album_art_url: str | None
     bucket: str
     position: int
     score_a: float
     score_b: float
     platform_track_id: str
+    llm_explanation: str | None
+    validation_status: str | None
 
     model_config = {"from_attributes": True}
 
@@ -63,11 +66,14 @@ def get_current_playlists(
                     canonical_track_id=pt.canonical_track_id,
                     display_title=canonical.display_title,
                     display_artists=canonical.display_artists,
+                    album_art_url=canonical.album_art_url,
                     bucket=pt.bucket,
                     position=pt.position,
                     score_a=pt.score_a,
                     score_b=pt.score_b,
                     platform_track_id=pt.platform_track_id,
+                    llm_explanation=pt.llm_explanation,
+                    validation_status=pt.validation_status,
                 ))
 
         result.append(PlaylistOut(

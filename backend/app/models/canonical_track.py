@@ -23,6 +23,7 @@ class CanonicalTrack(Base):
     display_artists: Mapped[list[str]] = mapped_column(ARRAY(Text), nullable=False)
     album: Mapped[str | None] = mapped_column(Text, nullable=True)
     duration_ms: Mapped[int | None] = mapped_column(Integer, nullable=True)
+    album_art_url: Mapped[str | None] = mapped_column(Text, nullable=True)
     created_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True), server_default=func.now()
     )
