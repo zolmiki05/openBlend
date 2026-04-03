@@ -1,0 +1,125 @@
+<div class="login-wrap">
+  <!-- Animated background blobs -->
+  <div class="blob blob--spotify" aria-hidden="true"></div>
+  <div class="blob blob--apple" aria-hidden="true"></div>
+  <div class="blob blob--center" aria-hidden="true"></div>
+
+  <!-- Card -->
+  <main class="card" role="main">
+    @if (!showForgotForm()) {
+      <!-- Logotype -->
+      <header class="card__header">
+        <div class="platform-pills" aria-label="Supported platforms">
+          <span class="pill pill--spotify">
+            <span class="pill__dot"></span>Spotify
+          </span>
+          <span class="pill__sep">×</span>
+          <span class="pill pill--apple">
+            <span class="pill__dot"></span>Apple Music
+          </span>
+        </div>
+        <h1 class="wordmark">OpenBlend</h1>
+        <p class="tagline">Your music. Both worlds.</p>
+      </header>
+
+      <!-- Login form -->
+      <form [formGroup]="form" (ngSubmit)="submit()" novalidate>
+        <div class="field">
+          <label class="field__label" for="username">Username</label>
+          <input
+            id="username"
+            class="field__input"
+            type="text"
+            formControlName="username"
+            autocomplete="username"
+            placeholder="your_username"
+            [attr.aria-invalid]="form.get('username')?.invalid && form.get('username')?.touched"
+          />
+        </div>
+
+        <div class="field">
+          <label class="field__label" for="password">Password</label>
+          <div class="field__password-wrap">
+            <input
+              id="password"
+              class="field__input"
+              [type]="showPassword() ? 'text' : 'password'"
+              formControlName="password"
+              autocomplete="current-password"
+              placeholder="••••••••"
+              [attr.aria-invalid]="form.get('password')?.invalid && form.get('password')?.touched"
+            />
+            <button
+              type="button"
+              class="field__eye"
+              (click)="togglePassword()"
+              [attr.aria-label]="showPassword() ? 'Hide password' : 'Show password'"
+            >
+              @if (showPassword()) {
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94"/><path d="M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19"/><line x1="1" y1="1" x2="23" y2="23"/></svg>
+              } @else {
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+              }
+            </button>
+          </div>
+        </div>
+
+        @if (error()) {
+          <div class="error-msg" role="alert">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+            {{ error() }}
+          </div>
+        }
+
+        <button type="submit" class="btn-primary" [disabled]="loading()" [class.btn-primary--loading]="loading()">
+          @if (loading()) {
+            <span class="spinner" aria-hidden="true"></span>Signing in…
+          } @else {
+            Sign In
+          }
+        </button>
+      </form>
+
+      <button type="button" class="forgot-link" (click)="showForgotForm.set(true)">
+        Forgot password?
+      </button>
+    } @else {
+      <!-- Forgot password panel -->
+      <header class="card__header">
+        <h1 class="wordmark" style="font-size: 1.75rem">Reset Password</h1>
+        <p class="tagline">We'll generate a temporary password for you.</p>
+      </header>
+
+      @if (!forgotSent()) {
+        <div class="field">
+          <label class="field__label" for="forgot-username">Username</label>
+          <input
+            id="forgot-username"
+            class="field__input"
+            type="text"
+            [value]="forgotUsername()"
+            (input)="forgotUsername.set($any($event.target).value)"
+            placeholder="your_username"
+            autocomplete="username"
+          />
+        </div>
+        <button type="button" class="btn-primary" (click)="submitForgot()">
+          Request Reset
+        </button>
+      } @else {
+        <div class="success-msg" role="status">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><polyline points="20 6 9 17 4 12"/></svg>
+          Temporary password generated. Contact your administrator to receive it.
+        </div>
+      }
+
+      <button type="button" class="forgot-link" (click)="showForgotForm.set(false); forgotSent.set(false)">
+        ← Back to login
+      </button>
+    }
+  </main>
+
+  <footer class="login-footer" aria-label="Tagline">
+    Two platforms. One playlist.
+  </footer>
+</div>

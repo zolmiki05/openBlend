@@ -1,0 +1,12 @@
+{
+  "users": [
+    {
+      "username": "user_spotify",
+      "platform": "spotify"
+    },
+    {
+      "username": "user_apple",
+      "platform": "apple_music"
+    }
+  ]
+}

@@ -1,0 +1,42 @@
+# Claude AI collaboration files
+CLAUDE.md
+.claude/
+frontend/.claude/
+
+# Environment files (contain secrets)
+.env
+.env.local
+.env.*.local
+
+# User config (contains usernames — copy from .example)
+users_config.json
+
+# Password reset log (contains sensitive plaintext passwords)
+backend/data/password_resets.log
+backend/data/
+
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.egg-info/
+.venv/
+venv/
+dist/
+build/
+*.egg
+.pytest_cache/
+
+# Node / Angular
+node_modules/
+frontend/dist/
+frontend/.angular/
+
+# OS
+.DS_Store
+Thumbs.db
+
+# IDE
+.idea/
+*.swp
+*.swo
