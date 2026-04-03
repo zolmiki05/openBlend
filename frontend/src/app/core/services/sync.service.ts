@@ -147,4 +147,8 @@ export class SyncService {
   getLLMLogDetail(id: string) {
     return this.http.get<LLMLogDetail>(`${this.api}/llm-audit/logs/${id}`);
   }
+
+  rejectTrack(canonicalTrackId: string, reason = 'user_rejected') {
+    return this.http.post(`${this.api}/rejected-tracks`, { canonical_track_id: canonicalTrackId, reason });
+  }
 }

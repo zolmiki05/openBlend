@@ -50,7 +50,9 @@ def apple_music_status(
     current_user: User = Depends(require_password_changed),
     db: Session = Depends(get_db),
 ):
+    import httpx
     from app.models.platform_token import PlatformToken
+    from app.utils.crypto import decrypt
 
     token = (
         db.query(PlatformToken)
@@ -60,8 +62,28 @@ def apple_music_status(
         )
         .first()
     )
+    if not token:
+        return PlatformConnectionStatus(platform="apple_music", connected=False, token_expiry=None)
+
+    # Verify token is still accepted by Apple Music API
+    try:
+        dev_token = generate_developer_token()
+        music_token = decrypt(token.access_token_encrypted)
+        resp = httpx.get(
+            "https://api.music.apple.com/v1/me/library/songs",
+            headers={
+                "Authorization": f"Bearer {dev_token}",
+                "Music-User-Token": music_token,
+            },
+            params={"limit": "1"},
+            timeout=8,
+        )
+        connected = resp.status_code == 200
+    except Exception:
+        connected = False
+
     return PlatformConnectionStatus(
         platform="apple_music",
-        connected=token is not None,
+        connected=connected,
         token_expiry=token.token_expiry if token else None,
     )

@@ -16,6 +16,7 @@ export class RecommendationsComponent implements OnInit {
   readonly loading = signal(true);
   readonly error = signal<string | null>(null);
   readonly activeFilter = signal<string>('all');
+  readonly rejecting = signal<Set<string>>(new Set());
 
   readonly filteredTracks = computed(() => {
     const filter = this.activeFilter();
@@ -88,6 +89,30 @@ export class RecommendationsComponent implements OnInit {
       a: `${(track.score_a / total) * 100}%`,
       b: `${(track.score_b / total) * 100}%`,
     };
+  }
+
+  rejectTrack(track: Track): void {
+    if (this.rejecting().has(track.canonical_track_id)) return;
+    this.rejecting.update(s => new Set([...s, track.canonical_track_id]));
+    // Optimistic remove
+    this.tracks.update(list => list.filter(t => t.canonical_track_id !== track.canonical_track_id));
+
+    this.syncService.rejectTrack(track.canonical_track_id)
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe({
+        error: () => {
+          // Restore on failure
+          this.tracks.update(list => [track, ...list].sort((a, b) => a.position - b.position));
+          this.rejecting.update(s => { const n = new Set(s); n.delete(track.canonical_track_id); return n; });
+        },
+        complete: () => {
+          this.rejecting.update(s => { const n = new Set(s); n.delete(track.canonical_track_id); return n; });
+        },
+      });
+  }
+
+  isRejecting(id: string): boolean {
+    return this.rejecting().has(id);
   }
 
   skeletons = Array.from({ length: 8 });

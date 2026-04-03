@@ -128,24 +128,34 @@ def run_ingestion_pipeline(
     db.add(run)
     db.commit()
 
+    platform_errors: dict[str, str] = {}
+
     try:
         # ── Stage 1: Ingestion ────────────────────────────────────────────────
-        if user.platform == "spotify":
-            ingested = ingest_spotify(db, user.id, run.id)
-        else:
-            ingested = ingest_apple_music(db, user.id, run.id)
+        ingested = 0
+        try:
+            if user.platform == "spotify":
+                ingested = ingest_spotify(db, user.id, run.id)
+            else:
+                ingested = ingest_apple_music(db, user.id, run.id)
+        except Exception as exc:
+            # Platform ingestion failure → partial run, continue with existing data
+            platform_errors[user.platform] = str(exc)
 
         run.raw_tracks_ingested = ingested
         db.commit()
 
         # ── Stage 1b: Enrich Apple Music tracks ───────────────────────────────
         enriched = 0
-        if user.platform == "apple_music":
+        if user.platform == "apple_music" and user.platform not in platform_errors:
             spotify_user = _find_user_by_platform(db, "spotify")
             if spotify_user:
-                enriched = enrich_apple_tracks_with_spotify_features(
-                    db, spotify_user.id, run.id
-                )
+                try:
+                    enriched = enrich_apple_tracks_with_spotify_features(
+                        db, spotify_user.id, run.id
+                    )
+                except Exception as exc:
+                    platform_errors["enrichment"] = str(exc)
 
         # ── Stage 2+3: Normalize + Match ──────────────────────────────────────
         raw_tracks = (
@@ -301,7 +311,8 @@ def run_ingestion_pipeline(
                 except Exception as e:
                     publish_results["apple_music_error"] = str(e)
 
-        run.status = "completed"
+        # Partial success if any platform had errors
+        run.status = "partial" if platform_errors else "completed"
         run.completed_at = datetime.now(timezone.utc)
         run.metrics = {
             "ingested": ingested,
@@ -311,7 +322,10 @@ def run_ingestion_pipeline(
             "canonical_tracks": canonical_count,
             "playlist_tracks": final_track_count,
             **publish_results,
+            **({"platform_errors": platform_errors} if platform_errors else {}),
         }
+        if platform_errors:
+            run.error = "; ".join(f"{k}: {v}" for k, v in platform_errors.items())
         db.commit()
 
     except Exception as exc:
