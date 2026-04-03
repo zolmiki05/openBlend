@@ -13,3 +13,5 @@ pydantic==2.10.3
 pydantic-settings==2.6.1
 apscheduler==3.10.4
 python-multipart==0.0.19
+rapidfuzz==3.10.1
+PyJWT==2.10.1
