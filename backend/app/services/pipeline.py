@@ -1,6 +1,9 @@
 """
-Pipeline orchestrator for Phase 2: Ingestion → Normalization → Matching.
+Pipeline orchestrator for Phase 2: Ingestion → Enrichment → Normalization → Matching.
 Creates and manages SyncRun records.
+
+The pipeline can be triggered for a single user (ingest that user's platform data),
+or for both users at once (full run: ingest both + cross-platform enrichment).
 """
 
 import uuid
@@ -12,8 +15,15 @@ from app.models.raw_track import RawTrack
 from app.models.sync_run import SyncRun
 from app.models.user import User
 from app.services.ingestion.apple_music import ingest_apple_music
+from app.services.ingestion.enrichment import enrich_apple_tracks_with_spotify_features
 from app.services.ingestion.spotify import ingest_spotify
 from app.services.matching import process_raw_track
+
+
+def _find_other_user(db: Session, current_user: User) -> User | None:
+    """Return the other user in the system (opposite platform)."""
+    target_platform = "spotify" if current_user.platform == "apple_music" else "apple_music"
+    return db.query(User).filter(User.platform == target_platform).first()
 
 
 def run_ingestion_pipeline(
@@ -22,7 +32,11 @@ def run_ingestion_pipeline(
     triggered_by: str = "manual",
 ) -> SyncRun:
     """
-    Ingest → Normalize → Match for a single user.
+    Full pipeline for one user:
+      1. Ingest that user's platform data
+      2. If Apple Music user — enrich tracks with Spotify audio features (using Spotify user's token)
+      3. Normalize + match all ingested raw tracks
+
     Returns the completed SyncRun.
     """
     run = SyncRun(id=uuid.uuid4(), status="running", triggered_by=triggered_by)
@@ -39,8 +53,17 @@ def run_ingestion_pipeline(
         run.raw_tracks_ingested = ingested
         db.commit()
 
-        # Stage 2+3: Normalize + Match all unmatched raw tracks for this run
-        unmatched = (
+        # Stage 1b: Enrich Apple Music tracks with Spotify audio features
+        enriched = 0
+        if user.platform == "apple_music":
+            spotify_user = _find_other_user(db, user)
+            if spotify_user:
+                enriched = enrich_apple_tracks_with_spotify_features(
+                    db, spotify_user.id, run.id
+                )
+
+        # Stage 2+3: Normalize + Match all raw tracks for this run
+        raw_tracks = (
             db.query(RawTrack)
             .filter(RawTrack.sync_run_id == run.id)
             .all()
@@ -48,7 +71,7 @@ def run_ingestion_pipeline(
 
         matched = 0
         manual_queue = 0
-        for raw in unmatched:
+        for raw in raw_tracks:
             match = process_raw_track(db, raw)
             if match:
                 matched += 1
@@ -74,6 +97,7 @@ def run_ingestion_pipeline(
         run.completed_at = datetime.now(timezone.utc)
         run.metrics = {
             "ingested": ingested,
+            "enriched_with_spotify_features": enriched,
             "matched": matched,
             "manual_queue": manual_queue,
             "canonical_tracks": canonical_ids,
