@@ -2,7 +2,7 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
 from app.config import settings
-from app.routers import apple_music, auth, pipeline, spotify
+from app.routers import apple_music, auth, pipeline, playlist, spotify
 
 app = FastAPI(
     title="OpenBlend API",
@@ -22,6 +22,7 @@ app.include_router(auth.router)
 app.include_router(spotify.router)
 app.include_router(apple_music.router)
 app.include_router(pipeline.router)
+app.include_router(playlist.router)
 
 
 @app.get("/health")

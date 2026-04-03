@@ -6,6 +6,10 @@ from app.models.raw_track import RawTrack
 from app.models.canonical_track import CanonicalTrack
 from app.models.track_match import TrackMatch
 from app.models.manual_review import ManualReviewQueue
+from app.models.taste_score import TasteScore
+from app.models.rejected_track import RejectedTrack
+from app.models.user_settings import UserSettings
+from app.models.playlist import Playlist, PlaylistTrack
 
 __all__ = [
     "User",
@@ -16,4 +20,9 @@ __all__ = [
     "CanonicalTrack",
     "TrackMatch",
     "ManualReviewQueue",
+    "TasteScore",
+    "RejectedTrack",
+    "UserSettings",
+    "Playlist",
+    "PlaylistTrack",
 ]

@@ -4,62 +4,135 @@
       <h1 class="dashboard__title">Dashboard</h1>
       <p class="dashboard__sub">Welcome back, {{ auth.currentUser()?.username }}.</p>
     </div>
-    <button type="button" class="btn-sync" disabled aria-label="Sync now (coming soon)">
-      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+    <button
+      type="button"
+      class="btn-sync"
+      (click)="triggerSync()"
+      [disabled]="syncing()"
+      [class.btn-sync--loading]="syncing()"
+      aria-label="Trigger sync now"
+    >
+      <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true" [class.spin]="syncing()">
         <polyline points="23 4 23 10 17 10"/>
         <path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"/>
       </svg>
-      Sync Now
+      {{ syncing() ? 'Syncing…' : 'Sync Now' }}
     </button>
   </header>
 
-  <!-- Platform connection status -->
+  @if (syncError()) {
+    <div class="alert alert--error" role="alert">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+      {{ syncError() }}
+    </div>
+  }
+
+  <!-- Platform connections -->
   <section class="section" aria-label="Platform connections">
     <h2 class="section__title">Connections</h2>
     <div class="platform-cards">
-      <div class="platform-card platform-card--spotify">
-        <div class="platform-card__icon" aria-hidden="true">
-          <svg width="22" height="22" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
-            <path d="M12 0C5.4 0 0 5.4 0 12s5.4 12 12 12 12-5.4 12-12S18.66 0 12 0zm5.521 17.34c-.24.359-.66.48-1.021.24-2.82-1.74-6.36-2.101-10.561-1.141-.418.122-.779-.179-.899-.539-.12-.421.18-.78.54-.9 4.56-1.021 8.52-.6 11.64 1.32.42.18.479.659.301 1.02zm1.44-3.3c-.301.42-.841.6-1.262.3-3.239-1.98-8.159-2.58-11.939-1.38-.479.12-1.02-.12-1.14-.6-.12-.48.12-1.021.6-1.141C9.6 9.9 15 10.561 18.72 12.84c.361.181.54.78.241 1.2zm.12-3.36C15.24 8.4 8.82 8.16 5.16 9.301c-.6.179-1.2-.181-1.38-.721-.18-.601.18-1.2.72-1.381 4.26-1.26 11.28-1.02 15.721 1.621.539.3.719 1.02.419 1.56-.299.421-1.02.599-1.559.3z"/>
-          </svg>
+      <!-- Spotify card -->
+      <div class="platform-card" [class.platform-card--connected]="spotifyStatus()?.connected">
+        <div class="platform-card__icon platform-card__icon--spotify" aria-hidden="true">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor"><path d="M12 0C5.4 0 0 5.4 0 12s5.4 12 12 12 12-5.4 12-12S18.66 0 12 0zm5.521 17.34c-.24.359-.66.48-1.021.24-2.82-1.74-6.36-2.101-10.561-1.141-.418.122-.779-.179-.899-.539-.12-.421.18-.78.54-.9 4.56-1.021 8.52-.6 11.64 1.32.42.18.479.659.301 1.02zm1.44-3.3c-.301.42-.841.6-1.262.3-3.239-1.98-8.159-2.58-11.939-1.38-.479.12-1.02-.12-1.14-.6-.12-.48.12-1.021.6-1.141C9.6 9.9 15 10.561 18.72 12.84c.361.181.54.78.241 1.2zm.12-3.36C15.24 8.4 8.82 8.16 5.16 9.301c-.6.179-1.2-.181-1.38-.721-.18-.601.18-1.2.72-1.381 4.26-1.26 11.28-1.02 15.721 1.621.539.3.719 1.02.419 1.56-.299.421-1.02.599-1.559.3z"/></svg>
         </div>
         <div class="platform-card__body">
           <span class="platform-card__name">Spotify</span>
-          <span class="platform-card__status platform-card__status--pending">Not connected</span>
+          @if (spotifyStatus()) {
+            <span class="platform-card__status" [class.platform-card__status--ok]="spotifyStatus()!.connected" [class.platform-card__status--warn]="!spotifyStatus()!.connected">
+              {{ spotifyStatus()!.connected ? 'Connected' : 'Not connected' }}
+            </span>
+          } @else {
+            <span class="platform-card__status">—</span>
+          }
         </div>
-        <button type="button" class="platform-card__btn platform-card__btn--spotify" disabled>
-          Connect
-        </button>
       </div>
 
-      <div class="platform-card platform-card--apple">
-        <div class="platform-card__icon" aria-hidden="true">
-          <svg width="22" height="22" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
-            <path d="M18.71 19.5c-.83 1.24-1.71 2.45-3.05 2.47-1.34.03-1.77-.79-3.29-.79-1.53 0-2 .77-3.27.82-1.31.05-2.3-1.32-3.14-2.53C4.25 17 2.94 12.45 4.7 9.39c.87-1.52 2.43-2.48 4.12-2.51 1.28-.02 2.5.87 3.29.87.78 0 2.26-1.07 3.8-.91.65.03 2.47.26 3.64 1.98-.09.06-2.17 1.28-2.15 3.81.03 3.02 2.65 4.03 2.68 4.04-.03.07-.42 1.44-1.38 2.83M13 3.5c.73-.83 1.94-1.46 2.94-1.5.13 1.17-.34 2.35-1.04 3.19-.69.85-1.83 1.51-2.95 1.42-.15-1.15.41-2.35 1.05-3.11z"/>
-          </svg>
+      <!-- Apple Music card -->
+      <div class="platform-card" [class.platform-card--connected]="appleMusicStatus()?.connected">
+        <div class="platform-card__icon platform-card__icon--apple" aria-hidden="true">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor"><path d="M18.71 19.5c-.83 1.24-1.71 2.45-3.05 2.47-1.34.03-1.77-.79-3.29-.79-1.53 0-2 .77-3.27.82-1.31.05-2.3-1.32-3.14-2.53C4.25 17 2.94 12.45 4.7 9.39c.87-1.52 2.43-2.48 4.12-2.51 1.28-.02 2.5.87 3.29.87.78 0 2.26-1.07 3.8-.91.65.03 2.47.26 3.64 1.98-.09.06-2.17 1.28-2.15 3.81.03 3.02 2.65 4.03 2.68 4.04-.03.07-.42 1.44-1.38 2.83M13 3.5c.73-.83 1.94-1.46 2.94-1.5.13 1.17-.34 2.35-1.04 3.19-.69.85-1.83 1.51-2.95 1.42-.15-1.15.41-2.35 1.05-3.11z"/></svg>
         </div>
         <div class="platform-card__body">
           <span class="platform-card__name">Apple Music</span>
-          <span class="platform-card__status platform-card__status--pending">Not connected</span>
+          @if (appleMusicStatus()) {
+            <span class="platform-card__status" [class.platform-card__status--ok]="appleMusicStatus()!.connected" [class.platform-card__status--warn]="!appleMusicStatus()!.connected">
+              {{ appleMusicStatus()!.connected ? 'Connected' : 'Not connected' }}
+            </span>
+          } @else {
+            <span class="platform-card__status">—</span>
+          }
         </div>
-        <button type="button" class="platform-card__btn platform-card__btn--apple" disabled>
-          Connect
-        </button>
       </div>
     </div>
   </section>
 
-  <!-- Last sync / empty state -->
-  <section class="section" aria-label="Sync history">
+  <!-- Last sync run -->
+  <section class="section" aria-label="Last sync run">
     <h2 class="section__title">Last Sync</h2>
-    <div class="empty-state">
-      <div class="empty-state__icon" aria-hidden="true">
-        <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.25">
-          <circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/>
-        </svg>
+    @if (lastRun()) {
+      <div class="run-card">
+        <div class="run-card__row">
+          <span class="run-badge" [class]="statusClass(lastRun()!.status)">
+            {{ lastRun()!.status }}
+          </span>
+          <span class="run-card__trigger">{{ lastRun()!.triggered_by }}</span>
+        </div>
+        @if (lastRun()!.status === 'completed') {
+          <div class="run-metrics">
+            <div class="metric">
+              <span class="metric__val">{{ lastRun()!.raw_tracks_ingested }}</span>
+              <span class="metric__label">ingested</span>
+            </div>
+            <div class="metric">
+              <span class="metric__val">{{ lastRun()!.matched_tracks }}</span>
+              <span class="metric__label">matched</span>
+            </div>
+            <div class="metric">
+              <span class="metric__val">{{ lastRun()!.canonical_tracks_total }}</span>
+              <span class="metric__label">canonical</span>
+            </div>
+            <div class="metric">
+              <span class="metric__val">{{ lastRun()!.manual_review_count }}</span>
+              <span class="metric__label">review queue</span>
+            </div>
+          </div>
+        }
+        @if (lastRun()!.error) {
+          <p class="run-card__error">{{ lastRun()!.error }}</p>
+        }
       </div>
-      <p class="empty-state__title">No sync runs yet</p>
-      <p class="empty-state__desc">Connect both platforms and run your first sync to see results here.</p>
-    </div>
+    } @else {
+      <div class="empty-state">
+        <div class="empty-state__icon" aria-hidden="true">
+          <svg width="30" height="30" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.25"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+        </div>
+        <p class="empty-state__title">No sync runs yet</p>
+        <p class="empty-state__desc">Connect both platforms and hit Sync Now to get started.</p>
+      </div>
+    }
   </section>
+
+  <!-- Playlist bucket breakdown -->
+  @if (playlistStats() && playlistStats()!.total > 0) {
+    <section class="section" aria-label="Playlist breakdown">
+      <h2 class="section__title">Current Playlist — {{ playlistStats()!.total }} tracks</h2>
+      <div class="bucket-list">
+        @for (b of bucketEntries(playlistStats()!.buckets); track b.key) {
+          <div class="bucket-item">
+            <span class="bucket-item__dot" [class]="'bucket-dot--' + b.key" aria-hidden="true"></span>
+            <span class="bucket-item__name">{{ b.key.replace('_', ' ') }}</span>
+            <span class="bucket-item__count">{{ b.value }}</span>
+            <div class="bucket-item__bar">
+              <div
+                class="bucket-item__fill"
+                [class]="'bucket-fill--' + b.key"
+                [style.width.%]="(b.value / playlistStats()!.total) * 100"
+              ></div>
+            </div>
+          </div>
+        }
+      </div>
+    </section>
+  }
 </div>
