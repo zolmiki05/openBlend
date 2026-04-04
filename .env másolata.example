@@ -1,0 +1,29 @@
+# Database
+POSTGRES_DB=openblend
+POSTGRES_USER=openblend
+POSTGRES_PASSWORD=change_me_strong_password
+
+# Security — generate with: openssl rand -hex 32
+SECRET_KEY=change_me_generate_with_openssl_rand_hex_32
+# Fernet key — generate with: python -c "from cryptography.fernet import Fernet; print(Fernet.generate_key().decode())"
+TOKEN_ENCRYPTION_KEY=change_me_generate_fernet_key
+
+# Spotify OAuth App credentials (from Spotify Developer Dashboard)
+SPOTIFY_CLIENT_ID=your_spotify_client_id
+SPOTIFY_CLIENT_SECRET=your_spotify_client_secret
+# Redirect URI must point to the frontend — register this exact URL in Spotify Developer Dashboard
+SPOTIFY_REDIRECT_URI=http://localhost:4200/auth/spotify/callback
+
+# Apple Music (from Apple Developer Portal)
+APPLE_MUSIC_TEAM_ID=your_team_id
+APPLE_MUSIC_KEY_ID=your_key_id
+# Paste the full .p8 private key content (including BEGIN/END lines), escape newlines as \n
+APPLE_MUSIC_PRIVATE_KEY=-----BEGIN PRIVATE KEY-----\n...\n-----END PRIVATE KEY-----
+APPLE_MUSIC_STOREFRONT=us
+
+# Z.ai — GLM-5 (OpenAI-compatible endpoint)
+ZAI_API_KEY=your_zai_api_key
+
+# URLs
+FRONTEND_URL=http://localhost:4200
+API_URL=http://localhost:8000

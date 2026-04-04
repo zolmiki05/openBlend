@@ -151,4 +151,8 @@ export class SyncService {
   rejectTrack(canonicalTrackId: string, reason = 'user_rejected') {
     return this.http.post(`${this.api}/rejected-tracks`, { canonical_track_id: canonicalTrackId, reason });
   }
+
+  exchangeSpotifyCode(code: string, state: string) {
+    return this.http.post<{ connected: boolean }>(`${this.api}/auth/spotify/exchange`, { code, state });
+  }
 }

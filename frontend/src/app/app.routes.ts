@@ -22,6 +22,14 @@ export const routes: Routes = [
       ),
   },
   {
+    path: 'auth/spotify/callback',
+    canActivate: [authGuard],
+    loadComponent: () =>
+      import('./pages/spotify-callback/spotify-callback.component').then(
+        (m) => m.SpotifyCallbackComponent,
+      ),
+  },
+  {
     path: '',
     canActivate: [authGuard, passwordChangeGuard],
     loadComponent: () =>

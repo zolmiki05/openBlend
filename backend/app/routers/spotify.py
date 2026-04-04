@@ -1,5 +1,6 @@
 from fastapi import APIRouter, Depends, HTTPException, Query, status
 from fastapi.responses import RedirectResponse
+from pydantic import BaseModel
 from sqlalchemy.orm import Session
 
 from app.config import settings
@@ -26,6 +27,27 @@ def spotify_authorize(
     return {"authorization_url": auth_url}
 
 
+class ExchangeRequest(BaseModel):
+    code: str
+    state: str
+
+
+@router.post("/exchange")
+def spotify_exchange(
+    body: ExchangeRequest,
+    current_user: User = Depends(require_password_changed),  # noqa: ARG001
+    db: Session = Depends(get_db),
+):
+    """Exchange authorization code for tokens (called by the frontend callback page)."""
+    result = exchange_code_for_tokens(db, body.code, body.state)
+    if not result:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Token exchange failed — code may have expired or state is invalid",
+        )
+    return {"connected": True}
+
+
 @router.get("/callback")
 def spotify_callback(
     code: str = Query(...),
@@ -33,6 +55,7 @@ def spotify_callback(
     error: str | None = Query(None),
     db: Session = Depends(get_db),
 ):
+    """Legacy server-side callback — kept for backward compatibility."""
     if error:
         return RedirectResponse(
             url=f"{settings.frontend_url}/settings?spotify_error={error}"

@@ -1,0 +1,104 @@
+:host {
+  display: block;
+  height: 100vh;
+  background: var(--color-bg);
+}
+
+.callback {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 100%;
+
+  &__card {
+    background: var(--color-surface);
+    border: 1px solid var(--color-border);
+    border-radius: 16px;
+    padding: 2.5rem 3rem;
+    min-width: 320px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 1.5rem;
+  }
+
+  &__spinner {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 1rem;
+  }
+
+  &__logo {
+    width: 48px;
+    height: 48px;
+    color: var(--color-spotify);
+    animation: pulse 1.5s ease-in-out infinite;
+  }
+
+  &__label {
+    font-size: 0.9375rem;
+    color: var(--color-text-muted);
+    font-family: var(--font-body);
+  }
+
+  &__bar {
+    width: 200px;
+    height: 3px;
+    background: var(--color-surface-2);
+    border-radius: 2px;
+    overflow: hidden;
+
+    &-fill {
+      height: 100%;
+      background: var(--color-spotify);
+      border-radius: 2px;
+      animation: progress 1.8s ease-in-out infinite;
+    }
+  }
+
+  &__error {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 1rem;
+    text-align: center;
+    color: var(--color-danger);
+  }
+
+  &__error-msg {
+    font-size: 0.875rem;
+    color: var(--color-text-muted);
+    max-width: 280px;
+    line-height: 1.5;
+    margin: 0;
+  }
+
+  &__back-btn {
+    padding: 0.5rem 1.25rem;
+    background: transparent;
+    border: 1px solid var(--color-border-strong);
+    border-radius: 6px;
+    color: var(--color-text);
+    font-family: var(--font-body);
+    font-size: 0.875rem;
+    cursor: pointer;
+    transition: border-color 0.18s, color 0.18s;
+
+    &:hover {
+      border-color: var(--color-accent);
+      color: var(--color-accent);
+    }
+  }
+}
+
+@keyframes pulse {
+  0%, 100% { opacity: 1; transform: scale(1); }
+  50%       { opacity: 0.7; transform: scale(0.95); }
+}
+
+@keyframes progress {
+  0%   { transform: translateX(-100%); }
+  50%  { transform: translateX(0); }
+  100% { transform: translateX(100%); }
+}
