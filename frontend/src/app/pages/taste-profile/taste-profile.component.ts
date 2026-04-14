@@ -29,6 +29,11 @@ export class TasteProfileComponent implements OnInit {
   readonly refreshResult = signal<number | null>(null);
   readonly error = signal<string | null>(null);
   readonly sortBy = signal<'score' | 'frequency' | 'lastfm'>('score');
+  readonly sortOptions: { value: 'score' | 'frequency' | 'lastfm'; label: string }[] = [
+    { value: 'score',     label: 'Score' },
+    { value: 'frequency', label: 'Frequency' },
+    { value: 'lastfm',    label: 'Last.fm boost' },
+  ];
   readonly limit = signal(100);
 
   ngOnInit(): void {

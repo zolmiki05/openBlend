@@ -75,11 +75,7 @@
   <!-- ── Sort bar ────────────────────────────────────────────────────────── -->
   <div class="sort-bar" role="group" aria-label="Sort tracks by">
     <span class="sort-bar__label">Sort by</span>
-    @for (opt of [
-      { value: 'score',     label: 'Score' },
-      { value: 'frequency', label: 'Frequency' },
-      { value: 'lastfm',    label: 'Last.fm boost' }
-    ]; track opt.value) {
+    @for (opt of sortOptions; track opt.value) {
       <button
         class="sort-btn"
         [class.sort-btn--active]="sortBy() === opt.value"
