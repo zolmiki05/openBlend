@@ -82,12 +82,15 @@ services:
   frontend:
     build:
       context: ./frontend
-      dockerfile: Dockerfile.prod   # uses nginx.prod.conf which proxies /api/ → backend
+      dockerfile: Dockerfile.prod   # uses nginx.prod.conf.template which proxies /api/ → backend
     restart: always
-    # Bind to loopback — the Proxmox reverse proxy connects here.
-    # Point your reverse proxy (nginx, Caddy, NPM, etc.) to 127.0.0.1:3000.
+    environment:
+      APP_URL:  ${APP_URL}           # domain served by this app, e.g. openblend.example.com
+      APP_PORT: ${APP_PORT:-80}      # port nginx listens on inside the container
+    # Bind to loopback — the host reverse proxy (nginx, Caddy, NPM…) connects here.
+    # Set FRONTEND_PORT in .env to the port your reverse proxy forwards to.
     ports:
-      - "127.0.0.1:3000:80"
+      - "127.0.0.1:${FRONTEND_PORT:-3000}:${APP_PORT:-80}"
     depends_on:
       - backend
     logging: *default-logging

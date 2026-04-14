@@ -175,14 +175,50 @@ fi
 p_ok "Python: $(command -v "$PY")"
 
 # ═══════════════════════════════════════════════════════════════════════════════
-# PORTS
+# DEPLOYMENT MODE
 # ═══════════════════════════════════════════════════════════════════════════════
-p_section "Portok"
+p_section "Telepítési mód"
 
-p_hint "Az URL-ek ezek alapján épülnek fel (FRONTEND_URL, API_URL)."
+p_hint "Dev = helyi fejlesztés (Angular dev server + FastAPI direktben)."
+p_hint "Prod = Docker Compose, nginx konténer, külső reverse proxy kezeli a cert-et."
 
-FRONTEND_PORT=$(ask_port "Frontend  (Angular)" "4200")
-API_PORT=$(ask_port      "Backend API  (FastAPI)" "8000")
+DEPLOY_MODE=""
+IFS= read -rp "$(echo -e "  Mód ${BOLD}[dev / prod]${RST} ${DIM}[↵ = dev]${RST}: ")" DEPLOY_MODE </dev/tty
+[[ -z "$DEPLOY_MODE" ]] && DEPLOY_MODE="dev"
+
+# ═══════════════════════════════════════════════════════════════════════════════
+# PORTS / URLS
+# ═══════════════════════════════════════════════════════════════════════════════
+p_section "Portok és URL-ek"
+
+APP_URL="_"
+APP_PORT="80"
+FRONTEND_PORT="3000"
+API_PORT="8000"
+
+if [[ "$DEPLOY_MODE" == "prod" ]]; then
+    p_hint "A cert-et a host reverse proxy kezeli — itt csak HTTP szükséges."
+    p_hint "APP_URL  = a domain, amit a reverse proxy átad a konténernek (nginx server_name)."
+    p_hint "APP_PORT = az nginx belső konténer portja (általában 80)."
+    p_hint "FRONTEND_PORT = a host-on lévő port, amire a reverse proxy mutat."
+
+    val=$(ask "APP_URL"       "Domain (pl. openblend.example.com)" "" false)
+    APP_URL="$val"
+
+    APP_PORT=$(ask_port "nginx belső konténer port" "80")
+    FRONTEND_PORT=$(ask_port "Host-oldali frontend port (reverse proxy célportja)" "3000")
+    API_PORT=$(ask_port "Backend API (FastAPI) konténer port" "8000")
+
+    FRONTEND_URL="https://${APP_URL}"
+    API_URL="https://${APP_URL}/api"
+else
+    p_hint "Dev módban az Angular dev server és a FastAPI közvetlenül fut."
+    FRONTEND_PORT=$(ask_port "Frontend  (Angular dev server)" "4200")
+    API_PORT=$(ask_port      "Backend API  (FastAPI)" "8000")
+
+    FRONTEND_URL="http://localhost:${FRONTEND_PORT}"
+    API_URL="http://localhost:${API_PORT}"
+fi
 
 # ═══════════════════════════════════════════════════════════════════════════════
 # DATABASE
@@ -324,8 +360,16 @@ wl "# Z.ai — GLM-5 (OpenAI-compatible endpoint)"
 wkv "ZAI_API_KEY" "$ZAI_KEY"
 wl ""
 wl "# URLs"
-wkv "FRONTEND_URL" "http://localhost:${FRONTEND_PORT}"
-wkv "API_URL"      "http://localhost:${API_PORT}"
+wkv "FRONTEND_URL" "$FRONTEND_URL"
+wkv "API_URL"      "$API_URL"
+wl ""
+wl "# Frontend nginx (production)"
+wl "# APP_URL   — domain a reverse proxy által kezelve (nginx server_name)"
+wl "# APP_PORT  — nginx belső konténer port"
+wl "# FRONTEND_PORT — host-oldali port, amire a reverse proxy mutat"
+wkv "APP_URL"       "$APP_URL"
+wkv "APP_PORT"      "$APP_PORT"
+wkv "FRONTEND_PORT" "$FRONTEND_PORT"
 
 mv "$TMP_FILE" "$ENV_FILE"
 
@@ -339,5 +383,11 @@ echo -e "${RST}"
 p_info "Fájl mentve: ${BOLD}${ENV_FILE}${RST}"
 echo ""
 p_info "Következő lépés:"
-echo -e "  ${BOLD}docker compose up --build${RST}"
+if [[ "$DEPLOY_MODE" == "prod" ]]; then
+    echo -e "  ${BOLD}docker compose -f docker-compose.prod.yml up --build -d${RST}"
+    echo ""
+    p_hint "Reverse proxy beállítása: ${APP_URL} → 127.0.0.1:${FRONTEND_PORT}"
+else
+    echo -e "  ${BOLD}docker compose up --build${RST}"
+fi
 echo ""
