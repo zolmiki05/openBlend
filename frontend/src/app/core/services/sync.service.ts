@@ -180,14 +180,6 @@ export class SyncService {
     return this.http.post(`${this.api}/rejected-tracks`, { canonical_track_id: canonicalTrackId, reason });
   }
 
-  exchangeSpotifyCode(code: string, state: string) {
-    return this.http.post<{ connected: boolean }>(`${this.api}/auth/spotify/exchange`, { code, state });
-  }
-
-  getSpotifyAuthUrl() {
-    return this.http.get<{ authorization_url: string }>(`${this.api}/auth/spotify/authorize`);
-  }
-
   pasteSpotifyToken(access_token: string) {
     return this.http.post<{ connected: boolean; display_name: string }>(
       `${this.api}/auth/spotify/paste-token`,

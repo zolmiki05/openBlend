@@ -1,77 +1,14 @@
-from fastapi import APIRouter, Depends, HTTPException, Query, status
-from fastapi.responses import RedirectResponse
+from fastapi import APIRouter, Depends, HTTPException, status
 from pydantic import BaseModel
 from sqlalchemy.orm import Session
 
-from app.config import settings
 from app.database import get_db
 from app.deps import get_current_user, require_password_changed
 from app.models.user import User
 from app.schemas.user import PlatformConnectionStatus
-from app.services.spotify import (
-    create_authorization_url,
-    exchange_code_for_tokens,
-    store_paste_token,
-)
+from app.services.spotify import store_paste_token
 
 router = APIRouter(prefix="/auth/spotify", tags=["spotify"])
-
-
-@router.get("/authorize")
-def spotify_authorize(
-    current_user: User = Depends(require_password_changed),
-    db: Session = Depends(get_db),
-):
-    if current_user.platform != "spotify":
-        raise HTTPException(
-            status_code=status.HTTP_403_FORBIDDEN,
-            detail="This account is not configured for Spotify",
-        )
-    auth_url = create_authorization_url(db, current_user.id)
-    return {"authorization_url": auth_url}
-
-
-class ExchangeRequest(BaseModel):
-    code: str
-    state: str
-
-
-@router.post("/exchange")
-def spotify_exchange(
-    body: ExchangeRequest,
-    current_user: User = Depends(require_password_changed),  # noqa: ARG001
-    db: Session = Depends(get_db),
-):
-    """Exchange authorization code for tokens (called by the frontend callback page)."""
-    result = exchange_code_for_tokens(db, body.code, body.state)
-    if not result:
-        raise HTTPException(
-            status_code=status.HTTP_400_BAD_REQUEST,
-            detail="Token exchange failed — code may have expired or state is invalid",
-        )
-    return {"connected": True}
-
-
-@router.get("/callback")
-def spotify_callback(
-    code: str = Query(...),
-    state: str = Query(...),
-    error: str | None = Query(None),
-    db: Session = Depends(get_db),
-):
-    """Legacy server-side callback — kept for backward compatibility."""
-    if error:
-        return RedirectResponse(
-            url=f"{settings.frontend_url}/settings?spotify_error={error}"
-        )
-
-    result = exchange_code_for_tokens(db, code, state)
-    if not result:
-        return RedirectResponse(
-            url=f"{settings.frontend_url}/settings?spotify_error=token_exchange_failed"
-        )
-
-    return RedirectResponse(url=f"{settings.frontend_url}/settings?spotify_connected=true")
 
 
 class PasteTokenRequest(BaseModel):

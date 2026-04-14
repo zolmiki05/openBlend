@@ -16,7 +16,6 @@ class Settings(BaseSettings):
     # Spotify
     spotify_client_id: str = ""
     spotify_client_secret: str = ""
-    spotify_redirect_uri: str = "http://localhost:8000/auth/spotify/callback"
 
     # Apple Music
     apple_music_team_id: str = ""

@@ -82,17 +82,6 @@ export class AccountsComponent implements OnInit {
   readonly savingSpotifyToken = signal(false);
   readonly spotifyConnectedAs = signal<string | null>(null);
 
-  connectSpotify(): void {
-    this.sync.getSpotifyAuthUrl().subscribe({
-      next: ({ authorization_url }) => {
-        window.location.href = authorization_url;
-      },
-      error: (err) => {
-        this.error.set(err?.error?.detail ?? 'Failed to get Spotify auth URL.');
-      },
-    });
-  }
-
   saveSpotifyToken(): void {
     const token = this.spotifyTokenInput.trim();
     if (!token) return;

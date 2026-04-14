@@ -46,7 +46,6 @@ TOKEN_ENCRYPTION_KEY=<run: python -c "from cryptography.fernet import Fernet; pr
 # Spotify — from https://developer.spotify.com/dashboard
 SPOTIFY_CLIENT_ID=...
 SPOTIFY_CLIENT_SECRET=...
-SPOTIFY_REDIRECT_URI=http://localhost:8000/auth/spotify/callback
 
 # Apple Music — from https://developer.apple.com (MusicKit key)
 APPLE_MUSIC_TEAM_ID=...
@@ -109,17 +108,11 @@ Edit `users_config.json`:
 
 ---
 
-## 4. Configure Spotify OAuth redirect
+## 4. Start the app
 
-In your [Spotify Developer Dashboard](https://developer.spotify.com/dashboard), open your app and add this to **Redirect URIs**:
-
+```bash
+docker compose up --build
 ```
-http://localhost:8000/auth/spotify/callback
-```
-
----
-
-## 5. Start the app
 
 ```bash
 docker compose up --build
@@ -137,7 +130,7 @@ Once running:
 
 ---
 
-## 6. Get the temporary passwords
+## 5. Get the temporary passwords
 
 ```bash
 cat backend/data/password_resets.log
@@ -153,7 +146,7 @@ Each line contains the username and its generated password. Log in at http://loc
 
 ---
 
-## 7. Connect accounts
+## 6. Connect accounts
 
 After logging in, go to **Accounts** (`/accounts`) and connect each platform.
 
@@ -182,7 +175,7 @@ Last.fm is used to scrobble Apple Music plays and feed listening history into th
 
 ---
 
-## 8. Run a sync
+## 7. Run a sync
 
 Go to the **Dashboard** and click **Run sync**. The pipeline will:
 
@@ -217,14 +210,11 @@ API calls from the browser go to `yourdomain.com/api/...`, which the frontend ng
 
 **1. Prepare the environment file**
 
-In production, set `FRONTEND_URL` to your actual public URL and update `SPOTIFY_REDIRECT_URI`:
+In production, set `FRONTEND_URL` to your actual public URL:
 
 ```env
 FRONTEND_URL=https://yourdomain.com
-SPOTIFY_REDIRECT_URI=https://yourdomain.com/api/auth/spotify/callback
 ```
-
-Add this redirect URI in your [Spotify Developer Dashboard](https://developer.spotify.com/dashboard) as well.
 
 **2. Start with the production compose**
 
@@ -315,8 +305,7 @@ The dev server runs at http://localhost:4200 and proxies API calls to http://loc
 | `SECRET_KEY` | Yes | JWT signing key (32-byte hex) |
 | `TOKEN_ENCRYPTION_KEY` | Yes | Fernet key for encrypting OAuth tokens |
 | `SPOTIFY_CLIENT_ID` | Yes | Spotify app client ID |
-| `SPOTIFY_CLIENT_SECRET` | Yes | Spotify app client secret |
-| `SPOTIFY_REDIRECT_URI` | Yes | Must match Spotify dashboard setting |
+| `SPOTIFY_CLIENT_SECRET` | Yes | Spotify app client secret (used for token refresh) |
 | `APPLE_MUSIC_TEAM_ID` | Yes | Apple Developer team ID |
 | `APPLE_MUSIC_KEY_ID` | Yes | MusicKit key ID |
 | `APPLE_MUSIC_PRIVATE_KEY` | Yes | `.p8` key content, newlines as `\n` |
