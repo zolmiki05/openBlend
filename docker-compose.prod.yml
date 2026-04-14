@@ -1,0 +1,98 @@
+services:
+
+  # ── Database ────────────────────────────────────────────────────────────────
+  db:
+    image: postgres:16-alpine
+    restart: always
+    environment:
+      POSTGRES_DB:       ${POSTGRES_DB}
+      POSTGRES_USER:     ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    # No external port — only reachable within the compose network
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 10s
+    logging: &default-logging
+      driver: json-file
+      options:
+        max-size: "10m"
+        max-file: "3"
+
+  # ── Redis ───────────────────────────────────────────────────────────────────
+  redis:
+    image: redis:7-alpine
+    restart: always
+    command: redis-server --save 60 1 --loglevel warning
+    volumes:
+      - redis_data:/data
+    # No external port
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 3s
+      retries: 5
+    logging: *default-logging
+
+  # ── Backend ─────────────────────────────────────────────────────────────────
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    restart: always
+    environment:
+      DATABASE_URL:              postgresql://${POSTGRES_USER}:${POSTGRES_PASSWORD}@db:5432/${POSTGRES_DB}
+      REDIS_URL:                 redis://redis:6379/0
+      SECRET_KEY:                ${SECRET_KEY}
+      TOKEN_ENCRYPTION_KEY:      ${TOKEN_ENCRYPTION_KEY}
+      SPOTIFY_CLIENT_ID:         ${SPOTIFY_CLIENT_ID}
+      SPOTIFY_CLIENT_SECRET:     ${SPOTIFY_CLIENT_SECRET}
+      SPOTIFY_REDIRECT_URI:      ${SPOTIFY_REDIRECT_URI}
+      APPLE_MUSIC_TEAM_ID:       ${APPLE_MUSIC_TEAM_ID}
+      APPLE_MUSIC_KEY_ID:        ${APPLE_MUSIC_KEY_ID}
+      APPLE_MUSIC_PRIVATE_KEY:   ${APPLE_MUSIC_PRIVATE_KEY}
+      APPLE_MUSIC_STOREFRONT:    ${APPLE_MUSIC_STOREFRONT:-us}
+      LASTFM_API_KEY:            ${LASTFM_API_KEY}
+      LASTFM_SHARED_SECRET:      ${LASTFM_SHARED_SECRET}
+      ZAI_API_KEY:               ${ZAI_API_KEY}
+      FRONTEND_URL:              ${FRONTEND_URL}
+      USERS_CONFIG_PATH:         /app/users_config.json
+      PASSWORD_RESET_LOG_PATH:   /app/data/password_resets.log
+    volumes:
+      - ./users_config.json:/app/users_config.json:ro
+      - backend_data:/app/data
+    # Bind to loopback only — reachable by the local reverse proxy
+    # but not directly from the internet.
+    # The frontend container proxies /api/ here over the internal Docker network,
+    # so this external port is only needed if you expose the API on a separate subdomain.
+    expose:
+      - "8000"
+    depends_on:
+      db:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    logging: *default-logging
+
+  # ── Frontend ────────────────────────────────────────────────────────────────
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile.prod   # uses nginx.prod.conf which proxies /api/ → backend
+    restart: always
+    # Bind to loopback — the Proxmox reverse proxy connects here.
+    # Point your reverse proxy (nginx, Caddy, NPM, etc.) to 127.0.0.1:3000.
+    ports:
+      - "127.0.0.1:3000:80"
+    depends_on:
+      - backend
+    logging: *default-logging
+
+volumes:
+  postgres_data:
+  redis_data:
+  backend_data:
