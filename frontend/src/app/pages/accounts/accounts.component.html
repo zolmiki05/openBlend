@@ -1,0 +1,230 @@
+<div class="accounts">
+  <header class="accounts__header">
+    <h1 class="accounts__title">Connected Accounts</h1>
+    <p class="accounts__subtitle">Link your music platforms and Last.fm scrobbling account</p>
+  </header>
+
+  @if (successMessage()) {
+    <div class="banner banner--ok" role="status">{{ successMessage() }}</div>
+  }
+  @if (error()) {
+    <div class="banner banner--err" role="alert">{{ error() }}</div>
+  }
+
+  <!-- ── Apple Music ─────────────────────────────────────────────────────── -->
+  @if (isAppleUser()) {
+    <section class="account-card account-card--col" aria-labelledby="apple-heading">
+      <div class="account-card__row">
+        <div class="account-card__icon account-card__icon--apple" aria-hidden="true">
+          <svg width="28" height="28" viewBox="0 0 24 24" fill="currentColor">
+            <path d="M18.71 19.5c-.83 1.24-1.71 2.45-3.05 2.47-1.34.03-1.77-.79-3.29-.79-1.53 0-2 .77-3.27.82-1.31.05-2.3-1.32-3.14-2.53C4.25 17 2.94 12.45 4.7 9.39c.87-1.52 2.43-2.48 4.12-2.51 1.28-.02 2.5.87 3.29.87.78 0 2.26-1.07 3.8-.91.65.03 2.47.26 3.64 1.98-.09.06-2.17 1.28-2.15 3.81.03 3.02 2.65 4.03 2.68 4.04-.03.07-.42 1.44-1.38 2.83M13 3.5c.73-.83 1.94-1.46 2.94-1.5.13 1.17-.34 2.35-1.04 3.19-.69.85-1.83 1.51-2.95 1.42-.15-1.15.41-2.35 1.05-3.11z"/>
+          </svg>
+        </div>
+        <div class="account-card__body">
+          <h2 class="account-card__name" id="apple-heading">Apple Music</h2>
+          @if (appleMusicStatus()) {
+            @if (appleMusicStatus()!.connected) {
+              <p class="account-card__status account-card__status--ok">
+                <span class="status-dot status-dot--ok" aria-hidden="true"></span>
+                Connected
+              </p>
+            } @else {
+              <p class="account-card__status account-card__status--off">
+                <span class="status-dot status-dot--off" aria-hidden="true"></span>
+                Not connected
+              </p>
+            }
+          } @else {
+            <p class="account-card__status">Checking…</p>
+          }
+          <p class="account-card__desc">
+            Read library + publish playlists. Requires a Music User Token from the Apple Music web player.
+          </p>
+        </div>
+      </div>
+
+      <div class="token-paste">
+        <ol class="token-paste__steps">
+          <li>Open <a href="https://music.apple.com" target="_blank" rel="noopener" class="token-paste__link">music.apple.com</a> while logged into Apple Music</li>
+          <li>Open the browser console <kbd>F12</kbd> → Console tab</li>
+          <li>Run: <code>MusicKit.getInstance().musicUserToken</code></li>
+          <li>Copy the returned string and paste it below</li>
+        </ol>
+        <div class="token-paste__row">
+          <input
+            class="token-paste__input"
+            type="password"
+            placeholder="Music User Token…"
+            [(ngModel)]="appleMusicTokenInput"
+            autocomplete="off"
+            aria-label="Apple Music user token"
+          />
+          <button
+            class="btn btn--primary"
+            [disabled]="!appleMusicTokenInput.trim() || savingAppleToken()"
+            (click)="saveAppleMusicToken()"
+          >
+            @if (savingAppleToken()) { Saving… } @else { Save }
+          </button>
+        </div>
+      </div>
+    </section>
+
+    <!-- ── Last.fm ──────────────────────────────────────────────────────── -->
+    <section class="account-card account-card--col" aria-labelledby="lastfm-heading">
+      <div class="account-card__row">
+        <div class="account-card__icon account-card__icon--lastfm" aria-hidden="true">
+          <svg width="28" height="28" viewBox="0 0 24 24" fill="currentColor">
+            <path d="M12 0C5.373 0 0 5.373 0 12s5.373 12 12 12 12-5.373 12-12S18.627 0 12 0zm5.441 16.158c-.44.31-1.017.465-1.73.465-.81 0-1.488-.24-2.033-.72-.544-.48-.817-1.09-.817-1.83 0-.72.256-1.308.768-1.763.512-.455 1.19-.682 2.032-.682.4 0 .768.054 1.103.162v-.9c-.34-.1-.72-.15-1.14-.15-1.07 0-1.93.3-2.58.9-.65.6-.975 1.39-.975 2.37 0 .99.34 1.79 1.02 2.4.68.61 1.56.915 2.64.915.72 0 1.35-.13 1.89-.39l-.18-.777zm-9.32-4.57l.81 2.31h1.53l-2.43-6.69H6.24l-2.43 6.69h1.5l.78-2.31h2.03zm-1.02-2.88l.72 2.07H6.33l.768-2.07z"/>
+          </svg>
+        </div>
+        <div class="account-card__body">
+          <h2 class="account-card__name" id="lastfm-heading">Last.fm</h2>
+          @if (lastFmStatus()) {
+            @if (lastFmStatus()!.connected) {
+              <p class="account-card__status account-card__status--ok">
+                <span class="status-dot status-dot--ok" aria-hidden="true"></span>
+                Connected as <strong>{{ lastFmStatus()!.username }}</strong>
+              </p>
+            } @else {
+              <p class="account-card__status account-card__status--off">
+                <span class="status-dot status-dot--off" aria-hidden="true"></span>
+                Not connected
+              </p>
+            }
+          } @else {
+            <p class="account-card__status">Checking…</p>
+          }
+          <p class="account-card__desc">
+            Scrobbles Apple Music plays and feeds listening history into scoring.
+          </p>
+        </div>
+        @if (lastFmStatus()?.connected) {
+          <div class="account-card__actions">
+            <div class="action-group">
+              <button
+                class="btn btn--secondary"
+                [disabled]="scrobbling()"
+                (click)="triggerScrobble()"
+                title="Push unscrobbled Apple Music plays to Last.fm now"
+              >
+                @if (scrobbling()) { Scrobbling… }
+                @else if (scrobbleResult() !== null) { {{ scrobbleResult() }} scrobbled }
+                @else { Sync scrobbles }
+              </button>
+              <button
+                class="btn btn--danger"
+                [disabled]="disconnectingLastFm()"
+                (click)="disconnectLastFm()"
+              >Disconnect</button>
+            </div>
+          </div>
+        }
+      </div>
+
+      <div class="token-paste">
+        <ol class="token-paste__steps">
+          <li>
+            Click
+            <button
+              class="btn btn--secondary btn--sm"
+              [disabled]="loadingLastFmUrl()"
+              (click)="openLastFmAuth()"
+            >
+              @if (loadingLastFmUrl()) { Opening… } @else { Open Last.fm auth }
+            </button>
+            — a new tab will open
+          </li>
+          <li>Authorize OpenBlend on Last.fm</li>
+          <li>After authorization, Last.fm redirects to a callback page — copy the <code>token</code> value from the URL (<samp>…/callback?token=<strong>XXXXXX</strong></samp>)</li>
+          <li>Paste the token below and click Save</li>
+        </ol>
+        <div class="token-paste__row">
+          <input
+            class="token-paste__input"
+            type="password"
+            placeholder="Last.fm auth token…"
+            [(ngModel)]="lastFmTokenInput"
+            autocomplete="off"
+            aria-label="Last.fm auth token"
+          />
+          <button
+            class="btn btn--primary"
+            [disabled]="!lastFmTokenInput.trim() || savingLastFmToken()"
+            (click)="saveLastFmToken()"
+          >
+            @if (savingLastFmToken()) { Connecting… } @else { Save }
+          </button>
+        </div>
+      </div>
+    </section>
+  }
+
+  <!-- ── Spotify (Spotify users only) ─────────────────────────────────────── -->
+  @if (!isAppleUser()) {
+    <section class="account-card account-card--col" aria-labelledby="spotify-heading">
+      <div class="account-card__row">
+        <div class="account-card__icon account-card__icon--spotify" aria-hidden="true">
+          <svg width="28" height="28" viewBox="0 0 24 24" fill="currentColor">
+            <path d="M12 0C5.4 0 0 5.4 0 12s5.4 12 12 12 12-5.4 12-12S18.66 0 12 0zm5.521 17.34c-.24.359-.66.48-1.021.24-2.82-1.74-6.36-2.101-10.561-1.141-.418.122-.779-.179-.899-.539-.12-.421.18-.78.54-.9 4.56-1.021 8.52-.6 11.64 1.32.42.18.479.659.301 1.02zm1.44-3.3c-.301.42-.841.6-1.262.3-3.239-1.98-8.159-2.58-11.939-1.38-.479.12-1.02-.12-1.14-.6-.12-.48.12-1.021.6-1.141C9.6 9.9 15 10.561 18.72 12.84c.361.181.54.78.241 1.2zm.12-3.36C15.24 8.4 8.82 8.16 5.16 9.301c-.6.179-1.2-.181-1.38-.721-.18-.601.18-1.2.72-1.381 4.26-1.26 11.28-1.02 15.721 1.621.539.3.719 1.02.419 1.56-.299.421-1.02.599-1.559.3z"/>
+          </svg>
+        </div>
+        <div class="account-card__body">
+          <h2 class="account-card__name" id="spotify-heading">Spotify</h2>
+          @if (spotifyStatus()) {
+            @if (spotifyStatus()!.connected) {
+              <p class="account-card__status account-card__status--ok">
+                <span class="status-dot status-dot--ok" aria-hidden="true"></span>
+                Connected
+                @if (spotifyStatus()!.token_expiry) {
+                  <span class="status-expiry">
+                    · token expires {{ spotifyStatus()!.token_expiry | date:'shortTime' }}
+                  </span>
+                }
+              </p>
+            } @else {
+              <p class="account-card__status account-card__status--off">
+                <span class="status-dot status-dot--off" aria-hidden="true"></span>
+                Not connected
+              </p>
+            }
+          } @else {
+            <p class="account-card__status">Checking…</p>
+          }
+          <p class="account-card__desc">
+            Read listening history, saved songs and playlists — plus write access to publish the shared playlist.
+          </p>
+        </div>
+        <div class="account-card__actions">
+          <button class="btn btn--secondary" (click)="connectSpotify()">OAuth flow</button>
+        </div>
+      </div>
+
+      <!-- Web Player token paste ─────────────────────────────────────────── -->
+      <div class="token-paste">
+        <ol class="token-paste__steps">
+          <li>Open <a href="https://open.spotify.com/get_access_token?reason=transport&productType=web_player" target="_blank" rel="noopener" class="token-paste__link">this URL</a> while logged into Spotify</li>
+          <li>Copy the <code>accessToken</code> value from the JSON response</li>
+          <li>Paste it below — valid for ~1 hour</li>
+        </ol>
+        <div class="token-paste__row">
+          <input
+            class="token-paste__input"
+            type="password"
+            placeholder="BQD…"
+            [(ngModel)]="spotifyTokenInput"
+            autocomplete="off"
+            aria-label="Spotify access token"
+          />
+          <button
+            class="btn btn--primary"
+            [disabled]="!spotifyTokenInput.trim() || savingSpotifyToken()"
+            (click)="saveSpotifyToken()"
+          >
+            @if (savingSpotifyToken()) { Validating… } @else { Save }
+          </button>
+        </div>
+      </div>
+    </section>
+  }
+</div>

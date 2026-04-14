@@ -38,5 +38,9 @@ class Settings(BaseSettings):
     # Apple Music storefront for catalog lookups
     apple_music_storefront: str = "us"
 
+    # Last.fm (from https://www.last.fm/api/account/create)
+    lastfm_api_key: str = ""
+    lastfm_shared_secret: str = ""
+
 
 settings = Settings()

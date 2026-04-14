@@ -27,6 +27,7 @@ class TasteScore(Base):
     frequency: Mapped[int] = mapped_column(Integer, nullable=False, default=1)
     is_saved: Mapped[bool] = mapped_column(Boolean, nullable=False, default=False)
     playlist_count: Mapped[int] = mapped_column(Integer, nullable=False, default=0)
+    lastfm_playcount_bonus: Mapped[float] = mapped_column(Float, nullable=False, default=0.0)
     computed_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True), server_default=func.now()
     )

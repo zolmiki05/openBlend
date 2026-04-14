@@ -1,0 +1,159 @@
+<div class="taste-profile">
+  <header class="taste-profile__header">
+    <div>
+      <h1 class="taste-profile__title">Taste Profile</h1>
+      <p class="taste-profile__subtitle">Scored tracks built from your listening history</p>
+    </div>
+    <div class="taste-profile__header-actions">
+      @if (refreshResult() !== null) {
+        <span class="refresh-result" role="status">{{ refreshResult() }} scores recomputed</span>
+      }
+      <button
+        class="btn-refresh"
+        [disabled]="refreshing()"
+        [class.btn-refresh--spinning]="refreshing()"
+        (click)="refresh()"
+        title="Recompute taste scores from existing raw tracks"
+      >
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+          <polyline points="23 4 23 10 17 10"/>
+          <path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"/>
+        </svg>
+        {{ refreshing() ? 'Refreshing…' : 'Refresh scores' }}
+      </button>
+    </div>
+  </header>
+
+  @if (error()) {
+    <div class="banner banner--err" role="alert">{{ error() }}</div>
+  }
+
+  <!-- ── Summary cards ──────────────────────────────────────────────────── -->
+  @if (summary()) {
+    <div class="summary-row">
+      <div class="stat-card">
+        <span class="stat-card__value">{{ summary()!.total_scored_tracks | number }}</span>
+        <span class="stat-card__label">Scored tracks</span>
+      </div>
+      <div class="stat-card">
+        <span class="stat-card__value">{{ summary()!.avg_score | number:'1.2-2' }}</span>
+        <span class="stat-card__label">Avg score</span>
+      </div>
+      <div class="stat-card">
+        <span class="stat-card__value">{{ summary()!.saved_tracks | number }}</span>
+        <span class="stat-card__label">Saved / loved</span>
+      </div>
+      <div class="stat-card stat-card--lastfm">
+        <span class="stat-card__value">{{ summary()!.lastfm_boosted_tracks | number }}</span>
+        <span class="stat-card__label">Last.fm boosted</span>
+      </div>
+    </div>
+
+    <!-- Source breakdown -->
+    <div class="breakdown-row">
+      <div class="breakdown-card">
+        <h3 class="breakdown-card__title">By platform</h3>
+        @for (entry of summaryEntries(summary()!.platform_breakdown); track entry.key) {
+          <div class="breakdown-item">
+            <span class="breakdown-item__label">{{ platformLabel(entry.key) }}</span>
+            <span class="breakdown-item__count">{{ entry.value | number }}</span>
+          </div>
+        }
+      </div>
+      <div class="breakdown-card">
+        <h3 class="breakdown-card__title">By source type</h3>
+        @for (entry of summaryEntries(summary()!.source_type_breakdown); track entry.key) {
+          <div class="breakdown-item">
+            <span class="breakdown-item__label">{{ sourceLabel(entry.key) }}</span>
+            <span class="breakdown-item__count">{{ entry.value | number }}</span>
+          </div>
+        }
+      </div>
+    </div>
+  }
+
+  <!-- ── Sort bar ────────────────────────────────────────────────────────── -->
+  <div class="sort-bar" role="group" aria-label="Sort tracks by">
+    <span class="sort-bar__label">Sort by</span>
+    @for (opt of [
+      { value: 'score',     label: 'Score' },
+      { value: 'frequency', label: 'Frequency' },
+      { value: 'lastfm',    label: 'Last.fm boost' }
+    ]; track opt.value) {
+      <button
+        class="sort-btn"
+        [class.sort-btn--active]="sortBy() === opt.value"
+        (click)="changeSort(opt.value)"
+      >{{ opt.label }}</button>
+    }
+  </div>
+
+  <!-- ── Track list ─────────────────────────────────────────────────────── -->
+  @if (loading()) {
+    <div class="track-list">
+      @for (i of [1,2,3,4,5,6,7,8]; track i) {
+        <div class="track-row track-row--skeleton">
+          <div class="skeleton-art"></div>
+          <div class="skeleton-lines">
+            <div class="skeleton-line sk-title"></div>
+            <div class="skeleton-line sk-meta"></div>
+          </div>
+        </div>
+      }
+    </div>
+  }
+
+  @if (!loading()) {
+    @if (scores().length === 0) {
+      <p class="empty-state">No taste scores yet. Run a sync to ingest listening history.</p>
+    } @else {
+      <div class="track-list">
+        @for (item of scores(); track item.canonical_track_id; let idx = $index) {
+          <div class="track-row">
+            <!-- Rank -->
+            <span class="track-row__rank">{{ idx + 1 }}</span>
+
+            <!-- Art -->
+            <div class="track-row__art">
+              @if (item.album_art_url) {
+                <img [src]="item.album_art_url" [alt]="item.display_title" loading="lazy" />
+              } @else {
+                <div class="track-row__art-placeholder" aria-hidden="true">♪</div>
+              }
+            </div>
+
+            <!-- Info -->
+            <div class="track-row__info">
+              <span class="track-row__title">{{ item.display_title }}</span>
+              <span class="track-row__artists">{{ item.display_artists.join(', ') }}</span>
+              <!-- Source tags -->
+              <div class="track-row__tags">
+                @for (p of item.platforms; track p) {
+                  <span class="tag tag--platform tag--{{ p }}">{{ platformLabel(p) }}</span>
+                }
+                @if (item.is_saved) {
+                  <span class="tag tag--saved">Saved</span>
+                }
+                @if (item.lastfm_playcount_bonus > 0) {
+                  <span class="tag tag--lastfm">Last.fm ×{{ item.lastfm_playcount_bonus | number:'1.2-2' }}</span>
+                }
+                @if (item.playlist_count > 0) {
+                  <span class="tag tag--dim">{{ item.playlist_count }} playlist{{ item.playlist_count > 1 ? 's' : '' }}</span>
+                }
+              </div>
+            </div>
+
+            <!-- Score bar + value -->
+            <div class="track-row__score">
+              <div class="score-bar">
+                <div class="score-bar__fill" [style.width]="scoreBarWidth(item.score)"></div>
+              </div>
+              <span class="score-bar__value">{{ item.score | number:'1.3-3' }}</span>
+              <span class="score-bar__freq" title="Number of raw track appearances">×{{ item.frequency }}</span>
+            </div>
+          </div>
+        }
+      </div>
+    }
+  }
+</div>

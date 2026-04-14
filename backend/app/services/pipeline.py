@@ -20,6 +20,7 @@ from app.models.user_settings import UserSettings
 from app.services.candidate_pool import build_candidate_pool
 from app.services.ingestion.apple_music import ingest_apple_music
 from app.services.ingestion.enrichment import enrich_apple_tracks_with_spotify_features
+from app.services.ingestion.lastfm import ingest_lastfm, scrobble_apple_music_plays
 from app.services.ingestion.spotify import ingest_spotify
 from app.services.llm_ranking import RankedTrack, rank_candidates
 from app.services.matching import process_raw_track
@@ -157,7 +158,23 @@ def run_ingestion_pipeline(
         run.raw_tracks_ingested = ingested
         db.commit()
 
-        # ── Stage 1b: Enrich Apple Music tracks ───────────────────────────────
+        # ── Stage 1b: Scrobble Apple Music plays to Last.fm (best-effort) ───────
+        if user.platform == "apple_music" and "apple_music" not in platform_errors:
+            try:
+                scrobble_apple_music_plays(db, user.id)
+            except Exception:
+                pass  # Never block the pipeline on scrobbling failure
+
+        # ── Stage 1c: Ingest Last.fm listening history ────────────────────────
+        if user.platform == "apple_music" and "apple_music" not in platform_errors:
+            try:
+                lastfm_ingested = ingest_lastfm(db, user.id, run.id)
+                run.raw_tracks_ingested = (run.raw_tracks_ingested or 0) + lastfm_ingested
+                db.commit()
+            except Exception as exc:
+                platform_errors["lastfm"] = str(exc)
+
+        # ── Stage 1d: Enrich Apple Music tracks ───────────────────────────────
         enriched = 0
         if user.platform == "apple_music" and user.platform not in platform_errors:
             spotify_user = _find_user_by_platform(db, "spotify")

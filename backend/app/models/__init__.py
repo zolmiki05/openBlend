@@ -11,11 +11,12 @@ from app.models.rejected_track import RejectedTrack
 from app.models.user_settings import UserSettings
 from app.models.playlist import Playlist, PlaylistTrack
 from app.models.llm_log import LLMLog
+from app.models.lastfm_scrobble import LastFmScrobble
 
 __all__ = [
     "User", "PlatformToken", "PKCEState",
     "SyncRun", "RawTrack", "CanonicalTrack", "TrackMatch", "ManualReviewQueue",
     "TasteScore", "RejectedTrack", "UserSettings",
     "Playlist", "PlaylistTrack",
-    "LLMLog",
+    "LLMLog", "LastFmScrobble",
 ]

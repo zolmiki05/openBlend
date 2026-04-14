@@ -1,0 +1,276 @@
+:host {
+  display: block;
+  height: 100%;
+  overflow-y: auto;
+}
+
+.accounts {
+  padding: 2.5rem 2rem 4rem;
+  max-width: 720px;
+
+  &__header {
+    margin-bottom: 2rem;
+  }
+
+  &__title {
+    font-family: var(--font-display);
+    font-size: clamp(1.75rem, 3vw, 2.25rem);
+    font-weight: 700;
+    letter-spacing: -0.03em;
+    margin: 0 0 0.25rem;
+    color: var(--color-text);
+    line-height: 1.1;
+  }
+
+  &__subtitle {
+    margin: 0;
+    font-size: 0.875rem;
+    color: var(--color-text-muted);
+  }
+}
+
+// ── Banners ──────────────────────────────────────────────────────────────────
+
+.banner {
+  padding: 0.75rem 1rem;
+  border-radius: 8px;
+  font-size: 0.875rem;
+  margin-bottom: 1.5rem;
+
+  &--ok {
+    background: rgba(29, 185, 84, 0.12);
+    color: var(--color-success);
+    border: 1px solid rgba(29, 185, 84, 0.25);
+  }
+
+  &--err {
+    background: rgba(255, 77, 77, 0.12);
+    color: var(--color-danger);
+    border: 1px solid rgba(255, 77, 77, 0.25);
+  }
+}
+
+// ── Account cards ─────────────────────────────────────────────────────────────
+
+.account-card {
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: 10px;
+  padding: 1.5rem;
+  margin-bottom: 1rem;
+  display: flex;
+  align-items: flex-start;
+  gap: 1.25rem;
+
+  &--col {
+    flex-direction: column;
+    gap: 0;
+  }
+
+  &__row {
+    display: flex;
+    align-items: flex-start;
+    gap: 1.25rem;
+    width: 100%;
+  }
+
+  &__icon {
+    flex-shrink: 0;
+    width: 48px;
+    height: 48px;
+    border-radius: 10px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    &--apple   { background: rgba(252, 60, 68, 0.12);  color: var(--color-apple); }
+    &--lastfm  { background: rgba(210, 30, 30, 0.12);  color: #d21e1e; }
+    &--spotify { background: rgba(29, 185, 84, 0.12);  color: var(--color-spotify); }
+  }
+
+  &__body {
+    flex: 1;
+    min-width: 0;
+  }
+
+  &__name {
+    font-size: 0.9375rem;
+    font-weight: 600;
+    margin: 0 0 0.35rem;
+    color: var(--color-text);
+  }
+
+  &__status {
+    font-size: 0.8rem;
+    margin: 0 0 0.5rem;
+    display: flex;
+    align-items: center;
+    gap: 0.4rem;
+
+    &--ok  { color: var(--color-success); }
+    &--off { color: var(--color-text-muted); }
+  }
+
+  &__desc {
+    font-size: 0.8rem;
+    color: var(--color-text-muted);
+    margin: 0;
+    line-height: 1.5;
+  }
+
+  &__actions {
+    flex-shrink: 0;
+    display: flex;
+    align-items: center;
+  }
+}
+
+// ── Status dot ────────────────────────────────────────────────────────────────
+
+.status-dot {
+  display: inline-block;
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  flex-shrink: 0;
+
+  &--ok  { background: var(--color-success); }
+  &--off { background: var(--color-text-muted); }
+}
+
+.status-expiry {
+  color: var(--color-text-muted);
+}
+
+// ── Buttons ───────────────────────────────────────────────────────────────────
+
+.btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  padding: 0.5rem 1.1rem;
+  border-radius: 6px;
+  font-family: var(--font-body);
+  font-size: 0.8125rem;
+  font-weight: 500;
+  cursor: pointer;
+  border: none;
+  transition: opacity 0.15s, background 0.15s;
+
+  &:disabled { opacity: 0.45; cursor: not-allowed; }
+
+  &--primary {
+    background: var(--color-accent);
+    color: #000;
+    &:hover:not(:disabled) { opacity: 0.88; }
+  }
+
+  &--secondary {
+    background: var(--color-surface-2);
+    color: var(--color-text);
+    border: 1px solid var(--color-border-strong);
+    &:hover:not(:disabled) { border-color: var(--color-accent); color: var(--color-accent); }
+  }
+
+  &--danger {
+    background: rgba(255, 77, 77, 0.12);
+    color: var(--color-danger);
+    border: 1px solid rgba(255, 77, 77, 0.2);
+    &:hover:not(:disabled) { background: rgba(255, 77, 77, 0.2); }
+  }
+
+  &--sm {
+    padding: 0.3rem 0.75rem;
+    font-size: 0.8rem;
+  }
+}
+
+.action-group {
+  display: flex;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+}
+
+// ── Web Player token paste ────────────────────────────────────────────────────
+
+.token-paste {
+  margin-top: 1.25rem;
+  padding-top: 1.25rem;
+  border-top: 1px solid var(--color-border);
+  width: 100%;
+
+  &__label {
+    font-size: 0.8125rem;
+    font-weight: 500;
+    color: var(--color-text);
+    margin: 0 0 0.75rem;
+  }
+
+  &__hint {
+    font-weight: 400;
+    color: var(--color-text-muted);
+  }
+
+  &__link {
+    color: var(--color-accent);
+    text-decoration: none;
+    &:hover { text-decoration: underline; }
+  }
+
+  &__row {
+    display: flex;
+    gap: 0.5rem;
+    align-items: center;
+  }
+
+  &__steps {
+    margin: 0 0 0.85rem;
+    padding-left: 1.3rem;
+    color: var(--color-text-muted);
+    font-size: 0.8rem;
+    line-height: 1.9;
+
+    li { padding-left: 0.25rem; }
+
+    kbd {
+      font-size: 0.75rem;
+      background: var(--color-surface-2);
+      border: 1px solid var(--color-border-strong);
+      border-radius: 4px;
+      padding: 0.1em 0.4em;
+      color: var(--color-text);
+    }
+
+    samp {
+      font-size: 0.75rem;
+      color: var(--color-text-muted);
+    }
+
+    strong { color: var(--color-accent); }
+  }
+
+  &__input {
+    flex: 1;
+    background: var(--color-surface-2);
+    border: 1px solid var(--color-border-strong);
+    border-radius: 6px;
+    padding: 0.5rem 0.75rem;
+    font-size: 0.85rem;
+    font-family: 'DM Mono', monospace, sans-serif;
+    color: var(--color-text);
+    outline: none;
+    min-width: 0;
+    transition: border-color 0.18s;
+
+    &:focus { border-color: var(--color-accent); }
+    &::placeholder { color: var(--color-text-subtle); }
+  }
+}
+
+code {
+  font-size: 0.8rem;
+  background: var(--color-surface-2);
+  padding: 0.1em 0.35em;
+  border-radius: 4px;
+  color: var(--color-accent);
+}

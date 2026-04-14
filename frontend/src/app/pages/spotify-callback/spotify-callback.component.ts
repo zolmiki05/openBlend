@@ -36,7 +36,7 @@ export class SpotifyCallbackComponent implements OnInit {
 
     this.sync.exchangeSpotifyCode(code, state).subscribe({
       next: () => {
-        this.router.navigate(['/settings'], {
+        this.router.navigate(['/accounts'], {
           queryParams: { spotify_connected: 'true' },
           replaceUrl: true,
         });
@@ -49,6 +49,6 @@ export class SpotifyCallbackComponent implements OnInit {
   }
 
   retry(): void {
-    this.router.navigate(['/settings'], { replaceUrl: true });
+    this.router.navigate(['/accounts'], { replaceUrl: true });
   }
 }

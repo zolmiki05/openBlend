@@ -30,6 +30,14 @@ export const routes: Routes = [
       ),
   },
   {
+    path: 'auth/lastfm/callback',
+    canActivate: [authGuard],
+    loadComponent: () =>
+      import('./pages/lastfm-callback/lastfm-callback.component').then(
+        (m) => m.LastFmCallbackComponent,
+      ),
+  },
+  {
     path: '',
     canActivate: [authGuard, passwordChangeGuard],
     loadComponent: () =>
@@ -46,6 +54,11 @@ export const routes: Routes = [
           import('./pages/recommendations/recommendations.component').then((m) => m.RecommendationsComponent),
       },
       {
+        path: 'accounts',
+        loadComponent: () =>
+          import('./pages/accounts/accounts.component').then((m) => m.AccountsComponent),
+      },
+      {
         path: 'settings',
         loadComponent: () =>
           import('./pages/settings/settings.component').then((m) => m.SettingsComponent),
@@ -59,6 +72,11 @@ export const routes: Routes = [
         path: 'llm-audit',
         loadComponent: () =>
           import('./pages/llm-audit/llm-audit.component').then((m) => m.LlmAuditComponent),
+      },
+      {
+        path: 'taste-profile',
+        loadComponent: () =>
+          import('./pages/taste-profile/taste-profile.component').then((m) => m.TasteProfileComponent),
       },
     ],
   },

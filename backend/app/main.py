@@ -5,7 +5,7 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
 from app.config import settings
-from app.routers import apple_music, auth, llm_audit, pipeline, playlist, spotify
+from app.routers import apple_music, auth, lastfm, llm_audit, pipeline, playlist, spotify, taste_profile
 from app.routers import settings as settings_router
 from app.routers import validation, rejected_tracks
 from app.scheduler import start_scheduler, stop_scheduler
@@ -38,12 +38,14 @@ app.add_middleware(
 app.include_router(auth.router)
 app.include_router(spotify.router)
 app.include_router(apple_music.router)
+app.include_router(lastfm.router)
 app.include_router(pipeline.router)
 app.include_router(playlist.router)
 app.include_router(llm_audit.router)
 app.include_router(settings_router.router)
 app.include_router(validation.router)
 app.include_router(rejected_tracks.router)
+app.include_router(taste_profile.router)
 
 
 @app.get("/health")

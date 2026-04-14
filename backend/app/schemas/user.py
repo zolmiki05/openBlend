@@ -18,3 +18,4 @@ class PlatformConnectionStatus(BaseModel):
     platform: str
     connected: bool
     token_expiry: datetime | None = None
+    username: str | None = None

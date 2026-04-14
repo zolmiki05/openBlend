@@ -27,8 +27,12 @@ MAX_FREQUENCY_BONUS = 0.30
 SAVE_BONUS = 0.20
 PLAYLIST_BONUS_PER_ENTRY = 0.05
 MAX_PLAYLIST_BONUS = 0.15
-SAVED_SOURCES = {"saved_songs"}
+# Last.fm: loved tracks receive the same bonus as saved songs
+SAVED_SOURCES = {"saved_songs", "lastfm_loved"}
 PLAYLIST_SOURCES = {"playlist", "library_playlist"}
+# Last.fm: play count bonus (50 plays = full bonus, capped at 0.25)
+LASTFM_PLAYCOUNT_SCALE = 50
+LASTFM_PLAYCOUNT_MAX_BONUS = 0.25
 
 
 def _compute_score(raw_tracks: list[RawTrack]) -> tuple[float, dict]:
@@ -51,13 +55,32 @@ def _compute_score(raw_tracks: list[RawTrack]) -> tuple[float, dict]:
     playlist_count = sum(1 for rt in raw_tracks if rt.source_type in PLAYLIST_SOURCES)
     playlist_bonus = min(playlist_count * PLAYLIST_BONUS_PER_ENTRY, MAX_PLAYLIST_BONUS)
 
-    score = max_weight * recency_factor + frequency_bonus + save_bonus + playlist_bonus
+    # Last.fm play-count bonus: derived from top-tracks entries that carry a play_count
+    lastfm_top = [rt for rt in raw_tracks if rt.source_type.startswith("lastfm_top")]
+    if lastfm_top:
+        max_playcount = max(
+            (rt.raw_data or {}).get("play_count", 0) for rt in lastfm_top
+        )
+        lastfm_playcount_bonus = (
+            min(max_playcount / LASTFM_PLAYCOUNT_SCALE, 1.0) * LASTFM_PLAYCOUNT_MAX_BONUS
+        )
+    else:
+        lastfm_playcount_bonus = 0.0
+
+    score = (
+        max_weight * recency_factor
+        + frequency_bonus
+        + save_bonus
+        + playlist_bonus
+        + lastfm_playcount_bonus
+    )
 
     return score, {
         "max_source_weight": max_weight,
         "frequency": frequency,
         "is_saved": is_saved,
         "playlist_count": playlist_count,
+        "lastfm_playcount_bonus": lastfm_playcount_bonus,
     }
 
 
@@ -98,6 +121,7 @@ def compute_taste_scores(db: Session, user: User) -> int:
             existing.frequency = breakdown["frequency"]
             existing.is_saved = breakdown["is_saved"]
             existing.playlist_count = breakdown["playlist_count"]
+            existing.lastfm_playcount_bonus = breakdown["lastfm_playcount_bonus"]
             existing.computed_at = datetime.now(timezone.utc)
         else:
             db.add(TasteScore(
@@ -108,6 +132,7 @@ def compute_taste_scores(db: Session, user: User) -> int:
                 frequency=breakdown["frequency"],
                 is_saved=breakdown["is_saved"],
                 playlist_count=breakdown["playlist_count"],
+                lastfm_playcount_bonus=breakdown["lastfm_playcount_bonus"],
             ))
         count += 1
 

@@ -20,6 +20,12 @@ SOURCE_WEIGHTS: dict[str, float] = {
     "library_playlist": 0.5,
     "apple_recently_played": 0.9,
     "apple_recommendations": 0.3,
+    # Last.fm
+    "lastfm_loved": 0.9,        # Loved/hearted — treated as "saved" in scoring
+    "lastfm_top_short": 1.0,    # Top tracks, 1-month window
+    "lastfm_top_medium": 0.7,   # Top tracks, 6-month window
+    "lastfm_top_long": 0.5,     # Top tracks, all-time
+    "lastfm_recent": 0.6,       # Recently played on Last.fm
 }
 
 

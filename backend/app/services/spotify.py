@@ -97,6 +97,31 @@ def exchange_code_for_tokens(db: Session, code: str, state: str) -> dict | None:
     return {"user_id": str(user_id)}
 
 
+def store_paste_token(db: Session, user_id, access_token: str) -> dict | None:
+    """
+    Validate a manually-pasted Spotify access token by calling /v1/me.
+    If valid, store it (without a refresh token — expires in ~1 hr).
+    Returns the user profile dict on success, None on failure.
+    """
+    with httpx.Client() as client:
+        resp = client.get(
+            "https://api.spotify.com/v1/me",
+            headers={"Authorization": f"Bearer {access_token}"},
+            timeout=10,
+        )
+    if resp.status_code != 200:
+        return None
+
+    profile = resp.json()
+    token_data = {
+        "access_token": access_token,
+        "expires_in": 3600,   # Web Player tokens typically live ~1 hr
+        "scope": "",
+    }
+    _upsert_platform_token(db, user_id, token_data)
+    return {"display_name": profile.get("display_name") or profile.get("id")}
+
+
 def refresh_spotify_token(db: Session, platform_token: PlatformToken) -> bool:
     if not platform_token.refresh_token_encrypted:
         return False
