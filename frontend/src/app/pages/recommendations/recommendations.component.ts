@@ -1,5 +1,6 @@
 import { ChangeDetectionStrategy, Component, DestroyRef, OnInit, computed, inject, signal } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
+import { LucideAngularModule, Music2, AlertCircle, X } from 'lucide-angular';
 import { SyncService, Track } from '../../core/services/sync.service';
 
 @Component({
@@ -7,6 +8,7 @@ import { SyncService, Track } from '../../core/services/sync.service';
   templateUrl: './recommendations.component.html',
   styleUrl: './recommendations.component.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,
+  imports: [LucideAngularModule],
 })
 export class RecommendationsComponent implements OnInit {
   private readonly syncService = inject(SyncService);
@@ -17,6 +19,10 @@ export class RecommendationsComponent implements OnInit {
   readonly error = signal<string | null>(null);
   readonly activeFilter = signal<string>('all');
   readonly rejecting = signal<Set<string>>(new Set());
+
+  readonly Music2Icon = Music2;
+  readonly AlertCircleIcon = AlertCircle;
+  readonly XIcon = X;
 
   readonly filteredTracks = computed(() => {
     const filter = this.activeFilter();
@@ -94,14 +100,12 @@ export class RecommendationsComponent implements OnInit {
   rejectTrack(track: Track): void {
     if (this.rejecting().has(track.canonical_track_id)) return;
     this.rejecting.update(s => new Set([...s, track.canonical_track_id]));
-    // Optimistic remove
     this.tracks.update(list => list.filter(t => t.canonical_track_id !== track.canonical_track_id));
 
     this.syncService.rejectTrack(track.canonical_track_id)
       .pipe(takeUntilDestroyed(this.destroyRef))
       .subscribe({
         error: () => {
-          // Restore on failure
           this.tracks.update(list => [track, ...list].sort((a, b) => a.position - b.position));
           this.rejecting.update(s => { const n = new Set(s); n.delete(track.canonical_track_id); return n; });
         },

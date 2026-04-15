@@ -15,17 +15,14 @@
         (click)="refresh()"
         title="Recompute taste scores from existing raw tracks"
       >
-        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
-          <polyline points="23 4 23 10 17 10"/>
-          <path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"/>
-        </svg>
+        <lucide-angular [img]="RefreshCwIcon" [size]="14" color="currentColor" aria-hidden="true"></lucide-angular>
         {{ refreshing() ? 'Refreshing…' : 'Refresh scores' }}
       </button>
     </div>
   </header>
 
   @if (error()) {
-    <div class="banner banner--err" role="alert">{{ error() }}</div>
+    <div class="banner--err" role="alert">{{ error() }}</div>
   }
 
   <!-- ── Summary cards ──────────────────────────────────────────────────── -->
@@ -49,7 +46,6 @@
       </div>
     </div>
 
-    <!-- Source breakdown -->
     <div class="breakdown-row">
       <div class="breakdown-card">
         <h3 class="breakdown-card__title">By platform</h3>
@@ -106,10 +102,7 @@
       <div class="track-list">
         @for (item of scores(); track item.canonical_track_id; let idx = $index) {
           <div class="track-row">
-            <!-- Rank -->
             <span class="track-row__rank">{{ idx + 1 }}</span>
-
-            <!-- Art -->
             <div class="track-row__art">
               @if (item.album_art_url) {
                 <img [src]="item.album_art_url" [alt]="item.display_title" loading="lazy" />
@@ -117,12 +110,9 @@
                 <div class="track-row__art-placeholder" aria-hidden="true">♪</div>
               }
             </div>
-
-            <!-- Info -->
             <div class="track-row__info">
               <span class="track-row__title">{{ item.display_title }}</span>
               <span class="track-row__artists">{{ item.display_artists.join(', ') }}</span>
-              <!-- Source tags -->
               <div class="track-row__tags">
                 @for (p of item.platforms; track p) {
                   <span class="tag tag--platform tag--{{ p }}">{{ platformLabel(p) }}</span>
@@ -138,8 +128,6 @@
                 }
               </div>
             </div>
-
-            <!-- Score bar + value -->
             <div class="track-row__score">
               <div class="score-bar">
                 <div class="score-bar__fill" [style.width]="scoreBarWidth(item.score)"></div>

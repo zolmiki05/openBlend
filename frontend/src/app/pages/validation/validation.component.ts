@@ -8,6 +8,7 @@ import {
   signal,
 } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
+import { LucideAngularModule, Check, X, CheckCircle2, AlertCircle } from 'lucide-angular';
 import { ReviewItem, SyncService } from '../../core/services/sync.service';
 
 type FilterTab = 'all' | 'pending' | 'approved' | 'rejected';
@@ -17,6 +18,7 @@ type FilterTab = 'all' | 'pending' | 'approved' | 'rejected';
   templateUrl: './validation.component.html',
   styleUrl: './validation.component.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,
+  imports: [LucideAngularModule],
 })
 export class ValidationComponent implements OnInit {
   private readonly sync = inject(SyncService);
@@ -27,6 +29,11 @@ export class ValidationComponent implements OnInit {
   readonly error = signal<string | null>(null);
   readonly activeTab = signal<FilterTab>('all');
   readonly actioning = signal<Set<string>>(new Set());
+
+  readonly CheckIcon = Check;
+  readonly XIcon = X;
+  readonly CheckCircle2Icon = CheckCircle2;
+  readonly AlertCircleIcon = AlertCircle;
 
   readonly tabs: { key: FilterTab; label: string }[] = [
     { key: 'all', label: 'All' },

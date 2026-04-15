@@ -1,11 +1,13 @@
 import { ChangeDetectionStrategy, Component, inject, signal } from '@angular/core';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { Router } from '@angular/router';
+import { LucideAngularModule, Eye, EyeOff, AlertCircle } from 'lucide-angular';
+import { InputTextModule } from 'primeng/inputtext';
 import { AuthService } from '../../core/services/auth.service';
 
 @Component({
   selector: 'app-login',
-  imports: [ReactiveFormsModule],
+  imports: [ReactiveFormsModule, LucideAngularModule, InputTextModule],
   templateUrl: './login.component.html',
   styleUrl: './login.component.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -21,6 +23,10 @@ export class LoginComponent {
   readonly showForgotForm = signal(false);
   readonly forgotSent = signal(false);
   readonly forgotUsername = signal('');
+
+  readonly EyeIcon = Eye;
+  readonly EyeOffIcon = EyeOff;
+  readonly AlertCircleIcon = AlertCircle;
 
   readonly form = this.fb.nonNullable.group({
     username: ['', Validators.required],

@@ -6,6 +6,7 @@ import {
   signal,
 } from '@angular/core';
 import { DecimalPipe } from '@angular/common';
+import { LucideAngularModule, RefreshCw } from 'lucide-angular';
 import {
   TasteProfileSummary,
   TasteScoreItem,
@@ -17,7 +18,7 @@ import {
   templateUrl: './taste-profile.component.html',
   styleUrl: './taste-profile.component.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [DecimalPipe],
+  imports: [DecimalPipe, LucideAngularModule],
 })
 export class TasteProfileComponent implements OnInit {
   private readonly sync = inject(SyncService);
@@ -35,6 +36,8 @@ export class TasteProfileComponent implements OnInit {
     { value: 'lastfm',    label: 'Last.fm boost' },
   ];
   readonly limit = signal(100);
+
+  readonly RefreshCwIcon = RefreshCw;
 
   ngOnInit(): void {
     this._load();

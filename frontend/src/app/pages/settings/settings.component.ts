@@ -9,6 +9,8 @@ import {
 } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
+import { LucideAngularModule, Save, Check, AlertCircle, TriangleAlert } from 'lucide-angular';
+import { InputTextModule } from 'primeng/inputtext';
 import { SyncService } from '../../core/services/sync.service';
 
 @Component({
@@ -16,7 +18,7 @@ import { SyncService } from '../../core/services/sync.service';
   templateUrl: './settings.component.html',
   styleUrl: './settings.component.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [ReactiveFormsModule],
+  imports: [ReactiveFormsModule, LucideAngularModule, InputTextModule],
 })
 export class SettingsComponent implements OnInit {
   private readonly sync = inject(SyncService);
@@ -27,6 +29,11 @@ export class SettingsComponent implements OnInit {
   readonly saving = signal(false);
   readonly saveStatus = signal<'idle' | 'success' | 'error'>('idle');
   readonly errorMessage = signal<string | null>(null);
+
+  readonly SaveIcon = Save;
+  readonly CheckIcon = Check;
+  readonly AlertCircleIcon = AlertCircle;
+  readonly TriangleAlertIcon = TriangleAlert;
 
   readonly scheduleOptions = [
     { value: 'daily', label: 'Daily' },
@@ -70,7 +77,6 @@ export class SettingsComponent implements OnInit {
         },
       });
 
-    // Keep ratioSum updated reactively from form value changes
     this.form.valueChanges
       .pipe(takeUntilDestroyed(this.destroyRef))
       .subscribe();

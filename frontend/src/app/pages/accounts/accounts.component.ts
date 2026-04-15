@@ -9,17 +9,19 @@ import {
 import { DatePipe } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { ActivatedRoute } from '@angular/router';
+import { LucideAngularModule, Check, X, RefreshCw, Unplug } from 'lucide-angular';
+import { InputTextModule } from 'primeng/inputtext';
 import { AuthService } from '../../core/services/auth.service';
 import { PlatformStatus, SyncService } from '../../core/services/sync.service';
 
-declare const MusicKit: any; // Loaded via CDN in index.html
+declare const MusicKit: any;
 
 @Component({
   selector: 'app-accounts',
   templateUrl: './accounts.component.html',
   styleUrl: './accounts.component.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [DatePipe, FormsModule],
+  imports: [DatePipe, FormsModule, LucideAngularModule, InputTextModule],
 })
 export class AccountsComponent implements OnInit {
   readonly auth = inject(AuthService);
@@ -30,12 +32,10 @@ export class AccountsComponent implements OnInit {
     () => this.auth.currentUser()?.platform === 'apple_music',
   );
 
-  // Platform statuses
   readonly appleMusicStatus = signal<PlatformStatus | null>(null);
   readonly lastFmStatus = signal<PlatformStatus | null>(null);
   readonly spotifyStatus = signal<PlatformStatus | null>(null);
 
-  // Loading / action states
   readonly loadingStatuses = signal(true);
   readonly connectingLastFm = signal(false);
   readonly disconnectingLastFm = signal(false);
@@ -44,12 +44,15 @@ export class AccountsComponent implements OnInit {
   readonly error = signal<string | null>(null);
   readonly successMessage = signal<string | null>(null);
 
+  readonly CheckIcon = Check;
+  readonly XIcon = X;
+  readonly RefreshCwIcon = RefreshCw;
+  readonly UnplugIcon = Unplug;
+
   ngOnInit(): void {
     this._checkQueryParams();
     this._loadStatuses();
   }
-
-  // ── Apple Music ────────────────────────────────────────────────────────────
 
   appleMusicTokenInput = '';
   readonly savingAppleToken = signal(false);
@@ -57,10 +60,8 @@ export class AccountsComponent implements OnInit {
   saveAppleMusicToken(): void {
     const token = this.appleMusicTokenInput.trim();
     if (!token) return;
-
     this.savingAppleToken.set(true);
     this.error.set(null);
-
     this.sync.storeAppleMusicUserToken(token).subscribe({
       next: () => {
         this.savingAppleToken.set(false);
@@ -76,8 +77,6 @@ export class AccountsComponent implements OnInit {
     });
   }
 
-  // ── Spotify ────────────────────────────────────────────────────────────────
-
   spotifyTokenInput = '';
   readonly savingSpotifyToken = signal(false);
   readonly spotifyConnectedAs = signal<string | null>(null);
@@ -85,10 +84,8 @@ export class AccountsComponent implements OnInit {
   saveSpotifyToken(): void {
     const token = this.spotifyTokenInput.trim();
     if (!token) return;
-
     this.savingSpotifyToken.set(true);
     this.error.set(null);
-
     this.sync.pasteSpotifyToken(token).subscribe({
       next: ({ display_name }) => {
         this.savingSpotifyToken.set(false);
@@ -105,8 +102,6 @@ export class AccountsComponent implements OnInit {
     });
   }
 
-  // ── Last.fm ────────────────────────────────────────────────────────────────
-
   lastFmTokenInput = '';
   readonly savingLastFmToken = signal(false);
   readonly lastFmAuthUrl = signal<string | null>(null);
@@ -115,7 +110,6 @@ export class AccountsComponent implements OnInit {
   openLastFmAuth(): void {
     this.loadingLastFmUrl.set(true);
     this.error.set(null);
-
     this.sync.getLastFmAuthUrl().subscribe({
       next: ({ auth_url }) => {
         this.loadingLastFmUrl.set(false);
@@ -132,10 +126,8 @@ export class AccountsComponent implements OnInit {
   saveLastFmToken(): void {
     const token = this.lastFmTokenInput.trim();
     if (!token) return;
-
     this.savingLastFmToken.set(true);
     this.error.set(null);
-
     this.sync.exchangeLastFmToken(token).subscribe({
       next: ({ username }) => {
         this.savingLastFmToken.set(false);
@@ -146,25 +138,18 @@ export class AccountsComponent implements OnInit {
       },
       error: (err) => {
         this.savingLastFmToken.set(false);
-        this.error.set(err?.error?.detail ?? 'Invalid token. Make sure you authorized and copied the correct value.');
+        this.error.set(err?.error?.detail ?? 'Invalid token.');
       },
     });
   }
 
-  connectLastFm(): void {
-    this.openLastFmAuth();
-  }
+  connectLastFm(): void { this.openLastFmAuth(); }
 
   disconnectLastFm(): void {
     this.disconnectingLastFm.set(true);
     this.sync.disconnectLastFm().subscribe({
-      next: () => {
-        this.disconnectingLastFm.set(false);
-        this._loadLastFmStatus();
-      },
-      error: () => {
-        this.disconnectingLastFm.set(false);
-      },
+      next: () => { this.disconnectingLastFm.set(false); this._loadLastFmStatus(); },
+      error: () => { this.disconnectingLastFm.set(false); },
     });
   }
 
@@ -183,8 +168,6 @@ export class AccountsComponent implements OnInit {
       },
     });
   }
-
-  // ── Private helpers ────────────────────────────────────────────────────────
 
   private _checkQueryParams(): void {
     const params = this.route.snapshot.queryParamMap;
@@ -210,20 +193,14 @@ export class AccountsComponent implements OnInit {
   }
 
   private _loadAppleMusicStatus(): void {
-    this.sync.getAppleMusicStatus().subscribe({
-      next: (s) => this.appleMusicStatus.set(s),
-    });
+    this.sync.getAppleMusicStatus().subscribe({ next: (s) => this.appleMusicStatus.set(s) });
   }
 
   private _loadLastFmStatus(): void {
-    this.sync.getLastFmStatus().subscribe({
-      next: (s) => this.lastFmStatus.set(s),
-    });
+    this.sync.getLastFmStatus().subscribe({ next: (s) => this.lastFmStatus.set(s) });
   }
 
   private _loadSpotifyStatus(): void {
-    this.sync.getSpotifyStatus().subscribe({
-      next: (s) => this.spotifyStatus.set(s),
-    });
+    this.sync.getSpotifyStatus().subscribe({ next: (s) => this.spotifyStatus.set(s) });
   }
 }

@@ -1,11 +1,12 @@
 import { ChangeDetectionStrategy, Component, computed, inject, signal } from '@angular/core';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { Router } from '@angular/router';
+import { LucideAngularModule, Lock, Eye, EyeOff, AlertCircle } from 'lucide-angular';
 import { AuthService } from '../../core/services/auth.service';
 
 @Component({
   selector: 'app-change-password',
-  imports: [ReactiveFormsModule],
+  imports: [ReactiveFormsModule, LucideAngularModule],
   templateUrl: './change-password.component.html',
   styleUrl: './change-password.component.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -20,6 +21,11 @@ export class ChangePasswordComponent {
   readonly showCurrent = signal(false);
   readonly showNew = signal(false);
   readonly showConfirm = signal(false);
+
+  readonly LockIcon = Lock;
+  readonly EyeIcon = Eye;
+  readonly EyeOffIcon = EyeOff;
+  readonly AlertCircleIcon = AlertCircle;
 
   readonly form = this.fb.nonNullable.group({
     currentPassword: ['', Validators.required],

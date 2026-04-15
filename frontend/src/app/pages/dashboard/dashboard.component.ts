@@ -5,6 +5,7 @@ import {
   inject,
   signal,
 } from '@angular/core';
+import { LucideAngularModule, RefreshCw, AlertCircle, Clock, CheckCircle2 } from 'lucide-angular';
 import { AuthService } from '../../core/services/auth.service';
 import {
   PlaylistStats,
@@ -18,6 +19,7 @@ import {
   templateUrl: './dashboard.component.html',
   styleUrl: './dashboard.component.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,
+  imports: [LucideAngularModule],
 })
 export class DashboardComponent implements OnInit {
   readonly auth = inject(AuthService);
@@ -29,6 +31,11 @@ export class DashboardComponent implements OnInit {
   readonly spotifyStatus = signal<PlatformStatus | null>(null);
   readonly appleMusicStatus = signal<PlatformStatus | null>(null);
   readonly playlistStats = signal<PlaylistStats | null>(null);
+
+  readonly RefreshCwIcon = RefreshCw;
+  readonly AlertCircleIcon = AlertCircle;
+  readonly ClockIcon = Clock;
+  readonly CheckCircle2Icon = CheckCircle2;
 
   ngOnInit(): void {
     this._loadData();

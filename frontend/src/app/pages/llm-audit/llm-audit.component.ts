@@ -9,6 +9,7 @@ import {
 } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { DecimalPipe } from '@angular/common';
+import { LucideAngularModule, Terminal } from 'lucide-angular';
 import { LLMLog, LLMLogDetail, SyncService } from '../../core/services/sync.service';
 
 @Component({
@@ -16,7 +17,7 @@ import { LLMLog, LLMLogDetail, SyncService } from '../../core/services/sync.serv
   templateUrl: './llm-audit.component.html',
   styleUrl: './llm-audit.component.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [DecimalPipe],
+  imports: [DecimalPipe, LucideAngularModule],
 })
 export class LlmAuditComponent implements OnInit {
   private readonly sync = inject(SyncService);
@@ -96,6 +97,8 @@ export class LlmAuditComponent implements OnInit {
   formatJson(obj: Record<string, unknown>): string {
     return JSON.stringify(obj, null, 2);
   }
+
+  readonly TerminalIcon = Terminal;
 
   skeletons = Array.from({ length: 6 });
 }

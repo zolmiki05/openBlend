@@ -3,7 +3,7 @@
   <!-- Header -->
   <header class="recs__header">
     <div class="recs__header-left">
-      <h1 class="recs__title">Recommendations</h1>
+      <h1 class="recs__title">Discover</h1>
       <p class="recs__subtitle">AI-curated blend of your combined taste</p>
     </div>
     @if (!loading() && !error()) {
@@ -47,9 +47,7 @@
   <!-- Error state -->
   @if (!loading() && error()) {
     <div class="recs__error" role="alert">
-      <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true" class="recs__error-icon">
-        <circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/>
-      </svg>
+      <lucide-angular [img]="AlertCircleIcon" [size]="40" color="currentColor" aria-hidden="true" class="recs__error-icon"></lucide-angular>
       <p class="recs__error-message">{{ error() }}</p>
       <button type="button" class="recs__retry-btn" (click)="load()">Try again</button>
     </div>
@@ -92,9 +90,7 @@
               />
             } @else {
               <div class="track-card__art-placeholder" aria-hidden="true">
-                <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.25">
-                  <path d="M9 18V5l12-2v13"/><circle cx="6" cy="18" r="3"/><circle cx="18" cy="16" r="3"/>
-                </svg>
+                <lucide-angular [img]="Music2Icon" [size]="40" color="currentColor"></lucide-angular>
               </div>
             }
 
@@ -156,9 +152,7 @@
               aria-label="Reject {{ track.display_title }} — never show again"
               title="Never show again"
             >
-              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" aria-hidden="true">
-                <line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/>
-              </svg>
+              <lucide-angular [img]="XIcon" [size]="12" color="currentColor" aria-hidden="true"></lucide-angular>
             </button>
           </div>
 

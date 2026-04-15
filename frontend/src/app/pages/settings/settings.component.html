@@ -25,6 +25,7 @@
         <div class="field">
           <label class="field__label" for="playlist-name">Playlist name</label>
           <input
+            pInputText
             class="field__input"
             id="playlist-name"
             type="text"
@@ -164,13 +165,20 @@
       <!-- Save bar -->
       <div class="save-bar">
         @if (saveStatus() === 'success') {
-          <span class="save-bar__feedback save-bar__feedback--ok" role="status">Settings saved.</span>
+          <span class="save-bar__feedback save-bar__feedback--ok" role="status">
+            <lucide-angular [img]="CheckIcon" [size]="14" color="currentColor" aria-hidden="true"></lucide-angular>
+            Settings saved.
+          </span>
         }
         @if (saveStatus() === 'error') {
-          <span class="save-bar__feedback save-bar__feedback--err" role="alert">{{ errorMessage() }}</span>
+          <span class="save-bar__feedback save-bar__feedback--err" role="alert">
+            <lucide-angular [img]="AlertCircleIcon" [size]="14" color="currentColor" aria-hidden="true"></lucide-angular>
+            {{ errorMessage() }}
+          </span>
         }
         @if (!ratioValid()) {
           <span class="save-bar__feedback save-bar__feedback--warn" role="status">
+            <lucide-angular [img]="TriangleAlertIcon" [size]="14" color="currentColor" aria-hidden="true"></lucide-angular>
             Ratios must sum to 100 (currently {{ ratioSum() }}).
           </span>
         }
@@ -184,7 +192,8 @@
             <span class="save-btn__spinner" aria-hidden="true"></span>
             Saving…
           } @else {
-            Save settings
+            <lucide-angular [img]="SaveIcon" [size]="14" color="currentColor" aria-hidden="true"></lucide-angular>
+            Save changes
           }
         </button>
       </div>

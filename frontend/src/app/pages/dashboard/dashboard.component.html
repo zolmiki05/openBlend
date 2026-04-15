@@ -1,8 +1,8 @@
 <div class="dashboard">
   <header class="dashboard__header">
     <div>
-      <h1 class="dashboard__title">Dashboard</h1>
-      <p class="dashboard__sub">Welcome back, {{ auth.currentUser()?.username }}.</p>
+      <h1 class="dashboard__title">Good day, {{ auth.currentUser()?.username }}.</h1>
+      <p class="dashboard__sub">Here's your blend status at a glance.</p>
     </div>
     <button
       type="button"
@@ -12,17 +12,20 @@
       [class.btn-sync--loading]="syncing()"
       aria-label="Trigger sync now"
     >
-      <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true" [class.spin]="syncing()">
-        <polyline points="23 4 23 10 17 10"/>
-        <path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"/>
-      </svg>
+      <lucide-angular
+        [img]="RefreshCwIcon"
+        [size]="15"
+        color="currentColor"
+        [class.spin]="syncing()"
+        aria-hidden="true"
+      ></lucide-angular>
       {{ syncing() ? 'Syncing…' : 'Sync Now' }}
     </button>
   </header>
 
   @if (syncError()) {
     <div class="alert alert--error" role="alert">
-      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+      <lucide-angular [img]="AlertCircleIcon" [size]="14" color="currentColor" aria-hidden="true"></lucide-angular>
       {{ syncError() }}
     </div>
   }
@@ -40,6 +43,7 @@
           <span class="platform-card__name">Spotify</span>
           @if (spotifyStatus()) {
             <span class="platform-card__status" [class.platform-card__status--ok]="spotifyStatus()!.connected" [class.platform-card__status--warn]="!spotifyStatus()!.connected">
+              <span class="status-dot" [class.status-dot--ok]="spotifyStatus()!.connected"></span>
               {{ spotifyStatus()!.connected ? 'Connected' : 'Not connected' }}
             </span>
           } @else {
@@ -57,6 +61,7 @@
           <span class="platform-card__name">Apple Music</span>
           @if (appleMusicStatus()) {
             <span class="platform-card__status" [class.platform-card__status--ok]="appleMusicStatus()!.connected" [class.platform-card__status--warn]="!appleMusicStatus()!.connected">
+              <span class="status-dot" [class.status-dot--ok]="appleMusicStatus()!.connected"></span>
               {{ appleMusicStatus()!.connected ? 'Connected' : 'Not connected' }}
             </span>
           } @else {
@@ -105,7 +110,7 @@
     } @else {
       <div class="empty-state">
         <div class="empty-state__icon" aria-hidden="true">
-          <svg width="30" height="30" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.25"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+          <lucide-angular [img]="ClockIcon" [size]="32" color="currentColor"></lucide-angular>
         </div>
         <p class="empty-state__title">No sync runs yet</p>
         <p class="empty-state__desc">Connect both platforms and hit Sync Now to get started.</p>

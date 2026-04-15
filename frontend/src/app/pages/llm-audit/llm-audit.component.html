@@ -55,7 +55,7 @@
   <!-- Empty -->
   @if (!loading() && !error() && logs().length === 0) {
     <div class="audit__empty">
-      <span class="audit__empty-icon" aria-hidden="true">▸</span>
+      <lucide-angular [img]="TerminalIcon" [size]="24" color="currentColor" aria-hidden="true"></lucide-angular>
       <p>No LLM calls recorded yet. Run a sync to generate entries.</p>
     </div>
   }

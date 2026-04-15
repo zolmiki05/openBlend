@@ -2,9 +2,7 @@
 
   @if (hasError()) {
     <div class="callback__card callback__card--error" role="alert">
-      <svg width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true">
-        <circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/>
-      </svg>
+      <lucide-angular [img]="AlertCircleIcon" [size]="36" color="currentColor" aria-hidden="true"></lucide-angular>
       <h1 class="callback__title">No token received</h1>
       <p class="callback__desc">Last.fm did not return a token. Try again from the Accounts page.</p>
       <button class="callback__btn" (click)="goToAccounts()">Back to Accounts</button>
@@ -34,15 +32,10 @@
           [attr.aria-label]="copied() ? 'Copied' : 'Copy token'"
         >
           @if (copied()) {
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
-              <polyline points="20 6 9 17 4 12"/>
-            </svg>
+            <lucide-angular [img]="CheckIcon" [size]="16" color="currentColor" aria-hidden="true"></lucide-angular>
             Copied!
           } @else {
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
-              <rect x="9" y="9" width="13" height="13" rx="2" ry="2"/>
-              <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/>
-            </svg>
+            <lucide-angular [img]="CopyIcon" [size]="16" color="currentColor" aria-hidden="true"></lucide-angular>
             Copy
           }
         </button>

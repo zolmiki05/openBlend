@@ -1,30 +1,32 @@
 @import "tailwindcss";
 
 @theme {
-  --font-display: "Syne", sans-serif;
-  --font-body: "DM Sans", sans-serif;
+  --font-display: "Figtree", sans-serif;
+  --font-body: "Figtree", sans-serif;
 
-  --color-bg: #080a0f;
-  --color-surface: #111318;
-  --color-surface-2: #191c25;
-  --color-border: rgba(255, 255, 255, 0.06);
-  --color-border-strong: rgba(255, 255, 255, 0.12);
+  --color-bg: #121212;
+  --color-surface: #181818;
+  --color-surface-2: #282828;
+  --color-surface-3: #3e3e3e;
+  --color-sidebar-bg: #000000;
+  --color-border: rgba(255, 255, 255, 0.07);
+  --color-border-strong: rgba(255, 255, 255, 0.14);
 
-  --color-accent: #00d4ff;
-  --color-accent-hover: #00b8e0;
-  --color-accent-dim: rgba(0, 212, 255, 0.12);
-  --color-accent-glow: rgba(0, 212, 255, 0.25);
+  --color-accent: #1DB954;
+  --color-accent-hover: #1ed760;
+  --color-accent-dim: rgba(29, 185, 84, 0.12);
+  --color-accent-glow: rgba(29, 185, 84, 0.3);
 
-  --color-spotify: #1db954;
+  --color-spotify: #1DB954;
   --color-apple: #fc3c44;
 
-  --color-text: #e4e8f0;
-  --color-text-muted: #5a6070;
-  --color-text-subtle: #343848;
+  --color-text: #ffffff;
+  --color-text-muted: #b3b3b3;
+  --color-text-subtle: #535353;
 
-  --color-danger: #ff4d4d;
-  --color-success: #1db954;
-  --color-warning: #ffb347;
+  --color-danger: #f15e6c;
+  --color-success: #1DB954;
+  --color-warning: #ffa42b;
 }
 
 *,
@@ -57,15 +59,55 @@ body {
 }
 
 ::-webkit-scrollbar {
-  width: 6px;
+  width: 8px;
+  height: 8px;
 }
 ::-webkit-scrollbar-track {
-  background: var(--color-surface);
+  background: transparent;
 }
 ::-webkit-scrollbar-thumb {
-  background: var(--color-text-subtle);
-  border-radius: 3px;
+  background: #535353;
+  border-radius: 4px;
 }
 ::-webkit-scrollbar-thumb:hover {
-  background: var(--color-text-muted);
+  background: #7a7a7a;
+}
+
+/* ── PrimeNG InputText overrides ──────────────────────────────────────────── */
+.p-inputtext {
+  background: rgba(255, 255, 255, 0.07) !important;
+  border: 2px solid transparent !important;
+  border-radius: 4px !important;
+  color: var(--color-text) !important;
+  font-family: var(--font-body) !important;
+  font-size: 1rem !important;
+  padding: 0.875rem 1rem !important;
+  transition: background 0.2s, border-color 0.2s !important;
+  width: 100% !important;
+  box-shadow: none !important;
+}
+
+.p-inputtext::placeholder {
+  color: var(--color-text-subtle) !important;
+}
+
+.p-inputtext:hover {
+  background: rgba(255, 255, 255, 0.1) !important;
+  border-color: transparent !important;
+}
+
+.p-inputtext:focus {
+  background: rgba(255, 255, 255, 0.1) !important;
+  border-color: var(--color-accent) !important;
+  box-shadow: none !important;
+  outline: none !important;
+}
+
+.p-inputtext.ng-invalid.ng-touched {
+  border-color: var(--color-danger) !important;
+}
+
+/* ── PrimeNG global reset ─────────────────────────────────────────────────── */
+.p-component {
+  font-family: var(--font-body) !important;
 }

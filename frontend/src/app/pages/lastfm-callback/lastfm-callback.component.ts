@@ -6,12 +6,14 @@ import {
   signal,
 } from '@angular/core';
 import { Router, ActivatedRoute } from '@angular/router';
+import { LucideAngularModule, AlertCircle, Check, Copy } from 'lucide-angular';
 
 @Component({
   selector: 'app-lastfm-callback',
   templateUrl: './lastfm-callback.component.html',
   styleUrl: './lastfm-callback.component.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,
+  imports: [LucideAngularModule],
 })
 export class LastFmCallbackComponent implements OnInit {
   private readonly route = inject(ActivatedRoute);
@@ -20,6 +22,10 @@ export class LastFmCallbackComponent implements OnInit {
   readonly token = signal<string | null>(null);
   readonly copied = signal(false);
   readonly hasError = signal(false);
+
+  readonly AlertCircleIcon = AlertCircle;
+  readonly CheckIcon = Check;
+  readonly CopyIcon = Copy;
 
   ngOnInit(): void {
     const t = this.route.snapshot.queryParamMap.get('token');
